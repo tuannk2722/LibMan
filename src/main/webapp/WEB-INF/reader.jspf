@@ -1,0 +1,7 @@
+<%@ include file="common.jspf" %>
+<%
+if (!(session.getAttribute("member") instanceof Reader9)) {
+    response.sendError(403, "Cần phiên đăng nhập bạn đọc"); return;
+}
+Reader9 bandoc = (Reader9) session.getAttribute("member");
+%>

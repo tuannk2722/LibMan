@@ -1,0 +1,8 @@
+<%@ include file="common.jspf" %>
+<%
+if (!(session.getAttribute("member") instanceof Librarian9)
+        || !"LIBRARIAN".equals(((Librarian9) session.getAttribute("member")).getPosition())) {
+    response.sendError(403, "Cần phiên đăng nhập thủ thư"); return;
+}
+Librarian9 thuthu = (Librarian9) session.getAttribute("member");
+%>
