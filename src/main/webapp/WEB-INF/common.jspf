@@ -1,0 +1,37 @@
+<%@ page pageEncoding="UTF-8" contentType="text/html; charset=UTF-8" trimDirectiveWhitespaces="true"
+    import="java.util.*,java.sql.SQLException,java.time.LocalDate,java.math.BigDecimal,dao.*,model.*" %>
+<%!
+private static String h(Object value) {
+    if (value == null) return "";
+    return value.toString().replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
+            .replace("\"","&quot;").replace("'","&#39;");
+}
+private static String param(jakarta.servlet.http.HttpServletRequest req, String name) {
+    return Objects.toString(req.getParameter(name), "").strip();
+}
+private static String input(jakarta.servlet.http.HttpServletRequest req, String name, Object fallback) {
+    String value = req.getParameter(name);
+    return h(value == null ? fallback : value);
+}
+private static String money(BigDecimal value) {
+    return java.text.NumberFormat.getIntegerInstance(Locale.forLanguageTag("vi-VN")).format(value);
+}
+private static String date(LocalDate value) {
+    return value.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+}
+%>
+<%
+request.setCharacterEncoding("UTF-8");
+response.setHeader("Cache-Control", "no-store");
+String csrf;
+synchronized (session) {
+    csrf = (String) session.getAttribute("csrf");
+    if (csrf == null) {
+        csrf = UUID.randomUUID().toString();
+        session.setAttribute("csrf", csrf);
+    }
+}
+if ("POST".equals(request.getMethod()) && !csrf.equals(request.getParameter("csrf"))) {
+    response.sendError(403); return;
+}
+%>
