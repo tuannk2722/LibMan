@@ -6,6 +6,34 @@
     <tracking-mode>COOKIE</tracking-mode>
   </session-config>
   <jsp-config>
-    <jsp-property-group><url-pattern>*.jsp</url-pattern><page-encoding>UTF-8</page-encoding></jsp-property-group>
+    <jsp-property-group>
+      <url-pattern>*.jsp</url-pattern>
+      <url-pattern>*.jspf</url-pattern>
+      <page-encoding>UTF-8</page-encoding>
+    </jsp-property-group>
   </jsp-config>
+  <error-page>
+    <error-code>403</error-code>
+    <location>/view/thanhvien/gdLoi.jsp</location>
+  </error-page>
+  <error-page>
+    <error-code>404</error-code>
+    <location>/view/thanhvien/gdLoi.jsp</location>
+  </error-page>
+  <error-page>
+    <error-code>405</error-code>
+    <location>/view/thanhvien/gdLoi.jsp</location>
+  </error-page>
+  <error-page>
+    <error-code>409</error-code>
+    <location>/view/thanhvien/gdLoi.jsp</location>
+  </error-page>
+  <error-page>
+    <error-code>500</error-code>
+    <location>/view/thanhvien/gdLoi.jsp</location>
+  </error-page>
+  <error-page>
+    <error-code>503</error-code>
+    <location>/view/thanhvien/gdLoi.jsp</location>
+  </error-page>
 </web-app>

@@ -1,4 +1,12 @@
 <%@ include file="/WEB-INF/librarian.jspf" %>
+<%!
+private static BigDecimal tryFine(String raw, BigDecimal fallback) {
+    if (raw != null && raw.matches("[0-9]{1,19}")) {
+        return new BigDecimal(raw);
+    }
+    return fallback != null ? fallback : BigDecimal.ZERO;
+}
+%>
 <%
 String selection = param(request, "selection");
 String lookup = param(request, "lookup");
@@ -75,59 +83,137 @@ if (bandoc == null || returnDate == null) {
     response.sendError(409);
     return;
 }
+
+boolean hasOverdue = false;
+for (LoanDetail9 ld : dsChon) {
+    if (overdueDays(ld.getDueDate(), returnDate) > 0) {
+        hasOverdue = true;
+        break;
+    }
+}
+BigDecimal initialTotal = BigDecimal.ZERO;
+request.setAttribute("pageTitle", "Nhập thông tin trả");
 %>
-<!doctype html>
-<html lang="vi">
-<meta charset="utf-8">
-<title>Nhập thông tin trả</title>
-<h1>Nhập thông tin trả</h1>
-<p>Bạn đọc <%=h(bandoc.getReaderCode())%> – <%=h(bandoc.getFullName())%></p>
-<p>Ngày trả <output id="outNgayTra"><%=date(returnDate)%></output></p>
-<%@ include file="/WEB-INF/error.jspf" %>
-<form method="post" action="doLapPhieuTam.jsp">
-  <input type="hidden" name="csrf" value="<%=csrf%>">
-  <input type="hidden" name="selection" value="<%=h(selection)%>">
-  <datalist id="dsTinhTrang">
-    <option value="Bình thường">
-    <option value="Hỏng">
-    <option value="Rách">
-    <option value="Mất">
-  </datalist>
-  <table id="tblTaiLieuMuon">
-    <tr>
-      <th>Mã bản sao</th>
-      <th>Tên tài liệu</th>
-      <th>Tình trạng</th>
-      <th>Phạt hỏng (đồng)</th>
-      <th>Phạt chậm (đồng)</th>
-    </tr>
-    <%
-    for (LoanDetail9 ld : dsChon) {
-        int id = ld.getId();
-        ReturnDetail9 old = previous == null ? null : Arrays.stream(previous.getDetails())
-                .filter(d -> d.getLoanDetail().getId() == id)
-                .findFirst()
-                .orElse(null);
-    %>
-      <tr>
-        <td><%=h(ld.getCopy().getCopyCode())%></td>
-        <td><%=h(ld.getCopy().getDocument().getTitle())%></td>
-        <td>
-          <input required maxlength="255" list="dsTinhTrang" name="inTinhTrang.<%=id%>"
-              value='<%=input(request, "inTinhTrang." + id, old == null ? "Bình thường" : old.getConditionAtReturn())%>'>
-        </td>
-        <td>
-          <input required type="number" min="0" step="1" name="inPhatHong.<%=id%>"
-              value='<%=input(request, "inPhatHong." + id, old == null ? 0 : old.getDamageFine())%>'>
-        </td>
-        <td>
-          <input required type="number" min="0" step="1" name="inPhatCham.<%=id%>"
-              value='<%=input(request, "inPhatCham." + id, old == null ? 0 : old.getLateFine())%>'>
-        </td>
-      </tr>
+<%@ include file="/WEB-INF/header.jspf" %>
+<ol class="stepper screen" aria-label="Tiến trình nhận trả tài liệu">
+  <li class="step is-done"><span class="step-num">1</span><span class="step-label">Xác định bạn đọc</span></li>
+  <li class="step is-done"><span class="step-num">2</span><span class="step-label">Chọn sách trả</span></li>
+  <li class="step is-active"><span class="step-num">3</span><span class="step-label">Tình trạng &amp; Tiền phạt</span></li>
+  <li class="step"><span class="step-num">4</span><span class="step-label">Phiếu trả &amp; In phiếu</span></li>
+</ol>
+<section class="card">
+  <div class="card-header">
+    <div>
+      <h1>Nhập thông tin trả</h1>
+      <p class="page-subtitle">Ghi nhận tình trạng thực tế và hai khoản phạt cho từng bản sao trước khi lập phiếu tạm</p>
+    </div>
+  </div>
+  <div class="meta-grid">
+    <div class="meta-item">
+      <span class="meta-label">Bạn đọc</span>
+      <span class="meta-value"><%=h(bandoc.getReaderCode())%> – <%=h(bandoc.getFullName())%></span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Ngày trả (hệ thống)</span>
+      <output id="outNgayTra" class="meta-value mono"><%=date(returnDate)%></output>
+    </div>
+  </div>
+  <%@ include file="/WEB-INF/error.jspf" %>
+  <form method="post" action="doLapPhieuTam.jsp">
+    <input type="hidden" name="csrf" value="<%=csrf%>">
+    <input type="hidden" name="selection" value="<%=h(selection)%>">
+    <datalist id="dsTinhTrang">
+      <option value="Bình thường">
+      <option value="Hỏng">
+      <option value="Rách">
+      <option value="Mất">
+    </datalist>
+    <% if (hasOverdue) { %>
+      <div class="table-toolbar">
+        <span class="form-hint">Có tài liệu quá hạn so với ngày trả hệ thống (<%=date(returnDate)%>).</span>
+        <button type="button" id="btnGoiYPhatCham" class="btn btn-outline btn-sm">Gợi ý phạt chậm (5.000đ/ngày quá hạn)</button>
+      </div>
     <% } %>
-  </table>
-  <a id="btnQuayLai" href="gdDSDangMuon.jsp?lookup=<%=h(lookup)%>">Quay lại</a>
-  <button name="btnLapPhieuTam">Lập phiếu tạm</button>
-</form>
-</html>
+    <div class="table-wrapper">
+      <table id="tblTaiLieuMuon" class="data-table">
+        <thead>
+          <tr>
+            <th>Mã bản sao</th>
+            <th>Tên tài liệu</th>
+            <th>Tình trạng</th>
+            <th class="col-money">Phạt hỏng (đồng)</th>
+            <th class="col-money">Phạt chậm (đồng)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <%
+          for (LoanDetail9 ld : dsChon) {
+              int id = ld.getId();
+              long overdue = overdueDays(ld.getDueDate(), returnDate);
+              ReturnDetail9 old = previous == null ? null : Arrays.stream(previous.getDetails())
+                      .filter(d -> d.getLoanDetail().getId() == id)
+                      .findFirst()
+                      .orElse(null);
+              String condFallback = old == null ? "Bình thường" : old.getConditionAtReturn();
+              String currentCond = request.getParameter("inTinhTrang." + id) != null
+                      ? param(request, "inTinhTrang." + id)
+                      : condFallback;
+              BigDecimal curDamage = tryFine(request.getParameter("inPhatHong." + id),
+                      old == null ? BigDecimal.ZERO : old.getDamageFine());
+              BigDecimal curLate = tryFine(request.getParameter("inPhatCham." + id),
+                      old == null ? BigDecimal.ZERO : old.getLateFine());
+              initialTotal = initialTotal.add(curDamage).add(curLate);
+              boolean canCirculate = isCirculationAvailable(currentCond, curDamage);
+          %>
+            <tr data-line-id="<%=id%>" data-overdue-days="<%=overdue%>">
+              <td class="mono"><strong><%=h(ld.getCopy().getCopyCode())%></strong></td>
+              <td>
+                <div class="doc-title"><%=h(ld.getCopy().getDocument().getTitle())%></div>
+                <div class="doc-sub">
+                  <span>Hạn trả: <span class="mono"><%=date(ld.getDueDate())%></span></span>
+                  <% if (overdue > 0) { %>
+                    <span class="badge badge-danger">Quá hạn <%=overdue%> ngày</span>
+                  <% } else { %>
+                    <span class="badge badge-success">Đúng hạn</span>
+                  <% } %>
+                  <span data-circulation-badge class="badge <%=canCirculate ? "badge-success" : "badge-warning"%>">
+                    <%=circulationLabel(currentCond, curDamage)%>
+                  </span>
+                </div>
+              </td>
+              <td>
+                <input required maxlength="255" list="dsTinhTrang" name="inTinhTrang.<%=id%>"
+                    aria-label="Tình trạng <%=h(ld.getCopy().getCopyCode())%>"
+                    value='<%=input(request, "inTinhTrang." + id, condFallback)%>'>
+              </td>
+              <td>
+                <input class="input-money" required type="number" min="0" step="1" name="inPhatHong.<%=id%>"
+                    aria-label="Phạt hỏng <%=h(ld.getCopy().getCopyCode())%>"
+                    value='<%=input(request, "inPhatHong." + id, old == null ? 0 : old.getDamageFine())%>'>
+              </td>
+              <td>
+                <input class="input-money" required type="number" min="0" step="1" name="inPhatCham.<%=id%>"
+                    aria-label="Phạt chậm <%=h(ld.getCopy().getCopyCode())%>"
+                    value='<%=input(request, "inPhatCham." + id, old == null ? 0 : old.getLateFine())%>'>
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3">Tổng tiền phạt dự kiến</td>
+            <td colspan="2" class="col-money">
+              <strong id="liveTotalFine" class="mono"><%=money(initialTotal)%> đồng</strong>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <p class="form-hint mt-1">Tình trạng và hai khoản phạt được nhập cho từng bản sao. Khi nhập phạt hỏng &gt; 0 hoặc mô tả hư hại/mất, bản sao sẽ tự chuyển sang Ngừng lưu thông.</p>
+    <div class="form-actions">
+      <a id="btnQuayLai" class="btn btn-secondary" href="gdDSDangMuon.jsp?lookup=<%=h(lookup)%>">Quay lại</a>
+      <button class="btn btn-primary" name="btnLapPhieuTam">Lập phiếu tạm</button>
+    </div>
+  </form>
+</section>
+<%@ include file="/WEB-INF/footer.jspf" %>

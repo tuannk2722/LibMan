@@ -19,6 +19,19 @@ private static String money(BigDecimal value) {
 private static String date(LocalDate value) {
     return value.format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 }
+private static String ctx(jakarta.servlet.http.HttpServletRequest req) {
+    return h(req.getContextPath());
+}
+private static long overdueDays(LocalDate dueDate, LocalDate refDate) {
+    if (dueDate == null || refDate == null || !refDate.isAfter(dueDate)) return 0L;
+    return java.time.temporal.ChronoUnit.DAYS.between(dueDate, refDate);
+}
+private static boolean isCirculationAvailable(String conditionAtReturn, BigDecimal damageFine) {
+    return "AVAILABLE".equals(ReturnReceiptDAO.xacDinhTrangThaiLuuThong(conditionAtReturn, damageFine));
+}
+private static String circulationLabel(String conditionAtReturn, BigDecimal damageFine) {
+    return isCirculationAvailable(conditionAtReturn, damageFine) ? "Có thể lưu thông" : "Ngừng lưu thông";
+}
 %>
 <%
 request.setCharacterEncoding("UTF-8");
@@ -31,7 +44,8 @@ synchronized (session) {
         session.setAttribute("csrf", csrf);
     }
 }
-if ("POST".equals(request.getMethod()) && !csrf.equals(request.getParameter("csrf"))) {
+if (request.getDispatcherType() != jakarta.servlet.DispatcherType.ERROR
+        && "POST".equals(request.getMethod()) && !csrf.equals(request.getParameter("csrf"))) {
     response.sendError(403); return;
 }
 %>

@@ -1,1 +1,2 @@
+<%@ page pageEncoding="UTF-8" %>
 <% if (!"POST".equals(request.getMethod())) { response.sendError(405); return; } %>

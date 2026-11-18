@@ -18,6 +18,7 @@ try (LibraryCardDAO dao = new LibraryCardDAO()) {
     bandoc.setEmail(hoSo.getEmail());
     bandoc.setPhone(hoSo.getPhone());
     session.setAttribute("member", bandoc);
+    session.setAttribute("hoSoDangKy", bandoc);
     session.setAttribute("theMoi", theMoi);
     response.sendRedirect("gdKetQua.jsp"); return;
 } catch (LibraryCardDAO.ActiveCardException e) {

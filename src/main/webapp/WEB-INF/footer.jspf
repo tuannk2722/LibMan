@@ -1,0 +1,11 @@
+<%@ page pageEncoding="UTF-8" %>
+</div>
+</main>
+<footer class="app-footer screen">
+  <div class="container footer-inner text-center">
+    <span>Hệ thống Quản lý Thư viện LibMan</span>
+  </div>
+</footer>
+<script src="<%=ctx(request)%>/assets/js/libman.js" defer></script>
+</body>
+</html>

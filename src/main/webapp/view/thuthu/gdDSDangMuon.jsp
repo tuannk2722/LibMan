@@ -59,66 +59,133 @@ if (lookup.isEmpty()) {
         dsPhieuTra = new ReturnReceipt9[0];
     }
 }
+LocalDate todayRef = LocalDate.now();
+request.setAttribute("pageTitle", "Danh sách tài liệu đang mượn");
 %>
-<!doctype html>
-<html lang="vi">
-<meta charset="utf-8">
-<title>Danh sách tài liệu đang mượn</title>
-<h1>Danh sách tài liệu đang mượn</h1>
-<p id="outBanDoc">Mã bạn đọc <%=h(banDoc.getReaderCode())%> · Họ tên <%=h(banDoc.getFullName())%></p>
-<%@ include file="/WEB-INF/error.jspf" %>
-<% if (dsMuon.length == 0) { %>
-  <p>Bạn đọc không có dòng mượn đang mở.</p>
-  <a href="gdChinh.jsp">Về trang chủ</a>
-<% } else { %>
-  <form method="post" action="gdChiTietTra.jsp">
-    <input type="hidden" name="csrf" value="<%=csrf%>">
-    <input type="hidden" name="lookup" value="<%=h(lookup)%>">
-    <table id="tblDangMuon">
-      <tr>
-        <th>Chọn</th>
-        <th>Mã bản sao</th>
-        <th>Tên tài liệu</th>
-        <th>Ngày mượn</th>
-        <th>Hạn trả</th>
-      </tr>
-      <% for (LoanDetail9 ld : dsMuon) { %>
-        <tr>
-          <td>
-            <input type="checkbox" name="chonTra"
-                aria-label="Chọn <%=h(ld.getCopy().getCopyCode())%>"
-                value="<%=ld.getId()%>">
-          </td>
-          <td><%=h(ld.getCopy().getCopyCode())%></td>
-          <td><%=h(ld.getCopy().getDocument().getTitle())%></td>
-          <td><%=date(ld.getLoan().getBorrowDate())%></td>
-          <td><%=date(ld.getDueDate())%></td>
-        </tr>
-      <% } %>
-    </table>
-    <button name="btnTiepTuc">Tiếp tục</button>
-  </form>
-<% } %>
+<%@ include file="/WEB-INF/header.jspf" %>
+<ol class="stepper screen" aria-label="Tiến trình nhận trả tài liệu">
+  <li class="step is-done"><span class="step-num">1</span><span class="step-label">Xác định bạn đọc</span></li>
+  <li class="step is-active"><span class="step-num">2</span><span class="step-label">Chọn sách trả</span></li>
+  <li class="step"><span class="step-num">3</span><span class="step-label">Tình trạng &amp; Tiền phạt</span></li>
+  <li class="step"><span class="step-num">4</span><span class="step-label">Phiếu trả &amp; In phiếu</span></li>
+</ol>
+<section class="card">
+  <div class="card-header">
+    <div>
+      <h1>Danh sách tài liệu đang mượn</h1>
+      <p class="page-subtitle">Đối chiếu tài liệu thực nhận tại quầy và chọn các bản sao bạn đọc trả lần này</p>
+    </div>
+    <span class="badge badge-info">Đang mượn: <%=dsMuon.length%> bản sao</span>
+  </div>
+  <div id="outBanDoc" class="meta-grid">
+    <div class="meta-item">
+      <span class="meta-label">Mã bạn đọc</span>
+      <span class="meta-value mono"><%=h(banDoc.getReaderCode())%></span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Họ tên</span>
+      <span class="meta-value"><%=h(banDoc.getFullName())%></span>
+    </div>
+  </div>
+  <%@ include file="/WEB-INF/error.jspf" %>
+  <% if (dsMuon.length == 0) { %>
+    <div class="alert alert-info">
+      <div>Bạn đọc không có dòng mượn đang mở.</div>
+    </div>
+    <div class="form-actions">
+      <a id="btnTimLai" class="btn btn-secondary" href="gdTimBanDoc.jsp">Tìm bạn đọc khác</a>
+      <a class="btn btn-primary" href="gdChinh.jsp">Về trang chủ</a>
+    </div>
+  <% } else { %>
+    <form method="post" action="gdChiTietTra.jsp">
+      <input type="hidden" name="csrf" value="<%=csrf%>">
+      <input type="hidden" name="lookup" value="<%=h(lookup)%>">
+      <div class="table-toolbar">
+        <label class="checkbox-label" for="chonTatCa">
+          <input type="checkbox" id="chonTatCa">
+          <span>Chọn tất cả tài liệu</span>
+        </label>
+        <span id="selectedCount" class="badge badge-neutral">Đã chọn: 0 / <%=dsMuon.length%> tài liệu</span>
+      </div>
+      <div class="table-wrapper">
+        <table id="tblDangMuon" class="data-table">
+          <thead>
+            <tr>
+              <th class="col-check">Chọn</th>
+              <th>Mã bản sao</th>
+              <th>Tên tài liệu</th>
+              <th>Ngày mượn</th>
+              <th>Hạn trả</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% for (LoanDetail9 ld : dsMuon) {
+                 long overdue = overdueDays(ld.getDueDate(), todayRef); %>
+              <tr>
+                <td class="col-check">
+                  <label class="checkbox-hit">
+                    <input type="checkbox" name="chonTra"
+                        aria-label="Chọn <%=h(ld.getCopy().getCopyCode())%>"
+                        value="<%=ld.getId()%>">
+                  </label>
+                </td>
+                <td class="mono"><strong><%=h(ld.getCopy().getCopyCode())%></strong></td>
+                <td class="doc-title"><%=h(ld.getCopy().getDocument().getTitle())%></td>
+                <td class="mono"><%=date(ld.getLoan().getBorrowDate())%></td>
+                <td>
+                  <span class="mono"><%=date(ld.getDueDate())%></span>
+                  <% if (overdue > 0) { %>
+                    <span class="badge badge-danger">Quá hạn <%=overdue%> ngày</span>
+                  <% } else { %>
+                    <span class="badge badge-success">Còn hạn</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+      <div class="form-actions">
+        <a id="btnTimLai" class="btn btn-secondary" href="gdTimBanDoc.jsp">Tìm bạn đọc khác</a>
+        <button class="btn btn-primary" name="btnTiepTuc">Tiếp tục</button>
+      </div>
+    </form>
+  <% } %>
+</section>
 <% if (dsPhieuTra != null && dsPhieuTra.length > 0) { %>
-  <h2>Phiếu trả đã lưu gần đây</h2>
-  <table id="tblPhieuTraGanDay">
-    <tr>
-      <th>Mã phiếu</th>
-      <th>Ngày trả</th>
-      <th>Tổng phạt</th>
-      <th>Trạng thái</th>
-      <th>Thao tác</th>
-    </tr>
-    <% for (ReturnReceipt9 pt : dsPhieuTra) { %>
-      <tr>
-        <td>#<%=pt.getId()%></td>
-        <td><%=date(pt.getReturnDate())%></td>
-        <td><%=money(pt.tinhTongPhat())%> đồng</td>
-        <td><%=h(pt.getPaymentStatus())%></td>
-        <td><a href="gdPhieuTra.jsp?idPhieu=<%=pt.getId()%>">Xem / In lại</a></td>
-      </tr>
-    <% } %>
-  </table>
+  <section class="card">
+    <div class="card-header">
+      <h2>Phiếu trả đã lưu gần đây</h2>
+      <span class="badge badge-neutral"><%=dsPhieuTra.length%> phiếu</span>
+    </div>
+    <div class="table-wrapper">
+      <table id="tblPhieuTraGanDay" class="data-table">
+        <thead>
+          <tr>
+            <th>Mã phiếu</th>
+            <th>Ngày trả</th>
+            <th class="col-money">Tổng phạt</th>
+            <th>Trạng thái</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (ReturnReceipt9 pt : dsPhieuTra) { %>
+            <tr>
+              <td class="mono"><strong>#<%=pt.getId()%></strong></td>
+              <td class="mono"><%=date(pt.getReturnDate())%></td>
+              <td class="col-money"><%=money(pt.tinhTongPhat())%> đồng</td>
+              <td>
+                <span class="badge <%="PAID".equals(pt.getPaymentStatus()) ? "badge-info" : "badge-success"%>">
+                  <%=h(pt.getPaymentStatus())%>
+                </span>
+              </td>
+              <td><a class="btn btn-outline btn-sm" href="gdPhieuTra.jsp?idPhieu=<%=pt.getId()%>">Xem / In lại</a></td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </section>
 <% } %>
-<a id="btnTimLai" href="gdTimBanDoc.jsp">Tìm bạn đọc khác</a>
-</html>
+<%@ include file="/WEB-INF/footer.jspf" %>

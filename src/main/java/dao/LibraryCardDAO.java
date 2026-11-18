@@ -38,7 +38,9 @@ public class LibraryCardDAO extends DAO {
     }
 
     public LibraryCard9 dangKyThe(Reader9 hoSo, String type) throws SQLException {
+        LocalDate today = LocalDate.now();
         if (hoSo.getFullName() == null || hoSo.getFullName().isBlank() || hoSo.getBirthDate() == null
+                || hoSo.getBirthDate().isAfter(today) || hoSo.getBirthDate().isBefore(LocalDate.of(1900, 1, 1))
                 || hoSo.getAddress() == null || hoSo.getAddress().isBlank()
                 || hoSo.getPhone() == null || !hoSo.getPhone().matches("[+]?[0-9]{8,15}")
                 || hoSo.getEmail() == null || !hoSo.getEmail().matches("[^ @]+@[^ @]+[.][^ @]+")

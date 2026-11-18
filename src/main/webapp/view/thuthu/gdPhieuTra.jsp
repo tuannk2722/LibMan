@@ -50,104 +50,181 @@ if (phieu == null && request.getAttribute("message") == null) {
 
 boolean saved = phieu != null && phieu.getId() > 0;
 Integer existingReceiptId = (Integer) request.getAttribute("existingReceiptId");
+request.setAttribute("pageTitle", "Phiếu trả tài liệu");
 %>
-<!doctype html>
-<html lang="vi">
-<meta charset="utf-8">
-<title>Phiếu trả tài liệu</title>
-<style>
-  @media print { nav, [role=alert], .screen { display: none; } }
-  table { border-collapse: collapse; }
-  th, td { border: 1px solid; padding: .3em; }
-</style>
-<h1>Phiếu trả tài liệu</h1>
-<%@ include file="/WEB-INF/error.jspf" %>
-<% if (existingReceiptId != null) { %>
-  <p class="screen">
-    <a id="lnkDoiChieuPhieu" href="gdPhieuTra.jsp?idPhieu=<%=existingReceiptId%>">
-      Mở phiếu trả #<%=existingReceiptId%> đã lưu để đối chiếu / in lại
-    </a>
-  </p>
-<% } %>
-<% if (phieu == null) { %>
-  <form method="get" action="gdPhieuTra.jsp">
-    <label>Mã phiếu trả <input type="number" min="1" required name="idPhieu" value="<%=h(idParam)%>"></label>
-    <button name="btnTraPhieu">Xem phiếu trả</button>
-  </form>
-  <nav>
-    <a id="btnTrangChu" href="gdChinh.jsp">Về trang chủ</a>
-  </nav>
-<% } else { %>
-  <% if (saved && !printing) { %>
-    <p class="screen"><%=draft.isEmpty() ? "Thông tin phiếu trả đã lưu." : "Nhận trả tài liệu thành công."%></p>
-  <% } %>
-  <p id="outBanDoc">Bạn đọc <%=h(phieu.getReader().getReaderCode())%> – <%=h(phieu.getReader().getFullName())%></p>
-  <p id="outThuThu">Thủ thư <%=h(phieu.getLibrarian().getFullName())%></p>
-  <p id="outNgayTra">Ngày trả <%=date(phieu.getReturnDate())%></p>
-  <p id="outMaPhieu">Mã phiếu <%=saved ? phieu.getId() : "được cấp sau khi lưu thành công"%></p>
-  <table id="tblChiTietTra">
-    <tr>
-      <th>Mã bản sao</th>
-      <th>Tên tài liệu</th>
-      <th>Phạt hỏng</th>
-      <th>Phạt chậm</th>
-      <th>Thành tiền</th>
-    </tr>
-    <% for (ReturnDetail9 d : phieu.getDetails()) { %>
-      <tr>
-        <td><%=h(d.getLoanDetail().getCopy().getCopyCode())%></td>
-        <td><%=h(d.getLoanDetail().getCopy().getDocument().getTitle())%></td>
-        <td><%=money(d.getDamageFine())%></td>
-        <td><%=money(d.getLateFine())%></td>
-        <td><%=money(d.tinhTienPhatDong())%></td>
-      </tr>
+<%@ include file="/WEB-INF/header.jspf" %>
+<ol class="stepper screen" aria-label="Tiến trình nhận trả tài liệu">
+  <li class="step is-done"><span class="step-num">1</span><span class="step-label">Xác định bạn đọc</span></li>
+  <li class="step is-done"><span class="step-num">2</span><span class="step-label">Chọn sách trả</span></li>
+  <li class="step is-done"><span class="step-num">3</span><span class="step-label">Tình trạng &amp; Tiền phạt</span></li>
+  <li class="step <%=saved ? "is-done" : "is-active"%>"><span class="step-num">4</span><span class="step-label">Phiếu trả &amp; In phiếu</span></li>
+</ol>
+<section class="card">
+  <div class="print-only print-header">
+    <div class="print-org">THƯ VIỆN LIBMAN</div>
+    <h1>PHIẾU XÁC NHẬN TRẢ TÀI LIỆU</h1>
+  </div>
+  <div class="card-header screen">
+    <div>
+      <h1>Phiếu trả tài liệu</h1>
+      <p class="page-subtitle"><%=saved ? "Chứng từ nhận trả chính thức đã lưu trong hệ thống" : "Phiếu tạm để đối chiếu tài liệu và tiền phạt trước khi xác nhận"%></p>
+    </div>
+    <% if (phieu != null) { %>
+      <% if (saved) { %>
+        <span class="badge badge-success">Đã lưu (#<%=phieu.getId()%>)</span>
+      <% } else { %>
+        <span class="badge badge-warning">Phiếu tạm (Chưa lưu)</span>
+      <% } %>
     <% } %>
-  </table>
-  <p>Tình trạng lúc trả</p>
-  <ul>
-    <% for (ReturnDetail9 d : phieu.getDetails()) { %>
-      <li><%=h(d.getLoanDetail().getCopy().getCopyCode())%> – <%=h(d.getConditionAtReturn())%></li>
-    <% } %>
-  </ul>
-  <p id="outTongPhat"><strong>Tổng tiền phạt <%=money(phieu.tinhTongPhat())%> đồng</strong></p>
-  <% if (saved) { %>
-    <p id="outThanhToan"><%="PAID".equals(phieu.getPaymentStatus()) ? "Đã thanh toán (PAID)" : "Không phát sinh phạt (NO_FINE)"%></p>
+  </div>
+  <%@ include file="/WEB-INF/error.jspf" %>
+  <% if (existingReceiptId != null) { %>
+    <p class="screen alert alert-info">
+      <a id="lnkDoiChieuPhieu" class="btn btn-outline btn-sm" href="gdPhieuTra.jsp?idPhieu=<%=existingReceiptId%>">
+        Mở phiếu trả #<%=existingReceiptId%> đã lưu để đối chiếu / in lại
+      </a>
+    </p>
   <% } %>
-  <nav>
+  <% if (phieu == null) { %>
+    <form class="inline-lookup-form" method="get" action="gdPhieuTra.jsp">
+      <div class="form-row-stack">
+        <label class="form-label" for="idPhieuRetry">Mã phiếu trả</label>
+        <input id="idPhieuRetry" type="number" min="1" required name="idPhieu" value="<%=h(idParam)%>">
+      </div>
+      <button class="btn btn-primary" name="btnTraPhieu">Xem phiếu trả</button>
+    </form>
+    <nav class="action-bar screen">
+      <a id="btnTrangChu" class="btn btn-secondary" href="gdChinh.jsp">Về trang chủ</a>
+    </nav>
+  <% } else { %>
+    <% if (saved && !printing) { %>
+      <p class="screen alert alert-success"><%=draft.isEmpty() ? "Thông tin phiếu trả đã lưu." : "Nhận trả tài liệu thành công."%></p>
+    <% } %>
+    <div class="meta-grid">
+      <div id="outBanDoc" class="meta-item">
+        <span class="meta-label">Bạn đọc</span>
+        <span class="meta-value"><%=h(phieu.getReader().getReaderCode())%> – <%=h(phieu.getReader().getFullName())%></span>
+      </div>
+      <div id="outThuThu" class="meta-item">
+        <span class="meta-label">Thủ thư</span>
+        <span class="meta-value"><%=h(phieu.getLibrarian().getFullName())%></span>
+      </div>
+      <div id="outNgayTra" class="meta-item">
+        <span class="meta-label">Ngày trả</span>
+        <span class="meta-value mono"><%=date(phieu.getReturnDate())%></span>
+      </div>
+      <div id="outMaPhieu" class="meta-item">
+        <span class="meta-label">Mã phiếu</span>
+        <span class="meta-value <%=saved ? "mono" : ""%>"><%=saved ? String.valueOf(phieu.getId()) : "được cấp sau khi lưu thành công"%></span>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table id="tblChiTietTra" class="data-table">
+        <thead>
+          <tr>
+            <th>Mã bản sao</th>
+            <th>Tên tài liệu</th>
+            <th class="col-money">Phạt hỏng</th>
+            <th class="col-money">Phạt chậm</th>
+            <th class="col-money">Thành tiền</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (ReturnDetail9 d : phieu.getDetails()) { %>
+            <tr>
+              <td class="mono"><strong><%=h(d.getLoanDetail().getCopy().getCopyCode())%></strong></td>
+              <td class="doc-title"><%=h(d.getLoanDetail().getCopy().getDocument().getTitle())%></td>
+              <td class="col-money"><%=money(d.getDamageFine())%></td>
+              <td class="col-money"><%=money(d.getLateFine())%></td>
+              <td class="col-money"><strong><%=money(d.tinhTienPhatDong())%></strong></td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+    <div class="condition-section">
+      <strong>Tình trạng lúc trả</strong>
+      <ul class="condition-list">
+        <% for (ReturnDetail9 d : phieu.getDetails()) {
+             boolean canCirculate = isCirculationAvailable(d.getConditionAtReturn(), d.getDamageFine()); %>
+          <li>
+            <span>
+              <strong class="mono"><%=h(d.getLoanDetail().getCopy().getCopyCode())%></strong>
+              – <%=h(d.getConditionAtReturn())%>
+            </span>
+            <span class="badge <%=canCirculate ? "badge-success" : "badge-warning"%>">
+              <%=circulationLabel(d.getConditionAtReturn(), d.getDamageFine())%>
+            </span>
+          </li>
+        <% } %>
+      </ul>
+    </div>
+    <div class="receipt-summary">
+      <p id="outTongPhat" class="receipt-total"><strong>Tổng tiền phạt <%=money(phieu.tinhTongPhat())%> đồng</strong></p>
+      <% if (saved) { %>
+        <p id="outThanhToan" class="mb-0">
+          <span class="badge <%="PAID".equals(phieu.getPaymentStatus()) ? "badge-info" : "badge-success"%>">
+            <%="PAID".equals(phieu.getPaymentStatus()) ? "Đã thanh toán (PAID)" : "Không phát sinh phạt (NO_FINE)"%>
+          </span>
+        </p>
+      <% } %>
+    </div>
     <% if (!saved) { %>
-      <p>
+      <p class="cash-notice screen <%=phieu.tinhTongPhat().signum() > 0 ? "" : "is-zero"%>">
         <%=phieu.tinhTongPhat().signum() > 0
             ? "Chỉ bấm Xác nhận nhận trả sau khi đã thu đủ " + money(phieu.tinhTongPhat()) + " đồng."
             : "Không phát sinh phạt."%>
       </p>
-      <% if (Boolean.TRUE.equals(request.getAttribute("conflict"))) { %>
-        <form method="post" action="gdDSDangMuon.jsp">
-          <input type="hidden" name="csrf" value="<%=csrf%>">
-          <input type="hidden" name="inMaBanDoc" value="<%=h(phieu.getReader().getReaderCode())%>">
-          <button>Tải lại danh sách đang mượn</button>
-        </form>
+    <% } %>
+    <nav class="action-bar screen">
+      <% if (!saved) { %>
+        <div class="action-group">
+          <% if (Boolean.TRUE.equals(request.getAttribute("conflict"))) { %>
+            <form method="post" action="gdDSDangMuon.jsp">
+              <input type="hidden" name="csrf" value="<%=csrf%>">
+              <input type="hidden" name="inMaBanDoc" value="<%=h(phieu.getReader().getReaderCode())%>">
+              <button class="btn btn-secondary">Tải lại danh sách đang mượn</button>
+            </form>
+          <% } else { %>
+            <a id="btnQuayLai" class="btn btn-secondary" href="gdChiTietTra.jsp?selection=<%=h(activeSelection)%>&amp;draft=<%=h(draft)%>">Quay lại</a>
+          <% } %>
+        </div>
+        <div class="action-group">
+          <% if (!Boolean.TRUE.equals(request.getAttribute("conflict"))) { %>
+            <form method="post" action="doLuuPhieuTra.jsp">
+              <input type="hidden" name="csrf" value="<%=csrf%>">
+              <input type="hidden" name="draft" value="<%=h(draft)%>">
+              <button class="btn btn-primary" name="btnXacNhanTra">Xác nhận nhận trả</button>
+            </form>
+          <% } %>
+          <button class="btn btn-outline" name="btnInPhieu" disabled>In phiếu trả</button>
+        </div>
       <% } else { %>
-        <a id="btnQuayLai" href="gdChiTietTra.jsp?selection=<%=h(activeSelection)%>&amp;draft=<%=h(draft)%>">Quay lại</a>
-        <form method="post" action="doLuuPhieuTra.jsp">
-          <input type="hidden" name="csrf" value="<%=csrf%>">
-          <input type="hidden" name="draft" value="<%=h(draft)%>">
-          <button name="btnXacNhanTra">Xác nhận nhận trả</button>
+        <a id="btnTrangChu" class="btn btn-secondary" href="gdChinh.jsp">Về trang chủ</a>
+        <form method="get" action="doInPhieuTra.jsp">
+          <input type="hidden" name="idPhieu" value="<%=phieu.getId()%>">
+          <% if (!draft.isEmpty()) { %>
+            <input type="hidden" name="draft" value="<%=h(draft)%>">
+          <% } %>
+          <button class="btn btn-primary" name="btnInPhieu">In phiếu trả</button>
         </form>
       <% } %>
-      <button name="btnInPhieu" disabled>In phiếu trả</button>
-    <% } else { %>
-      <form method="get" action="doInPhieuTra.jsp">
-        <input type="hidden" name="idPhieu" value="<%=phieu.getId()%>">
-        <% if (!draft.isEmpty()) { %>
-          <input type="hidden" name="draft" value="<%=h(draft)%>">
-        <% } %>
-        <button name="btnInPhieu">In phiếu trả</button>
-      </form>
-      <a id="btnTrangChu" href="gdChinh.jsp">Về trang chủ</a>
+    </nav>
+    <div class="print-only print-signatures">
+      <div>
+        <strong>Bạn đọc</strong>
+        <div class="print-sign-note">(Ký, ghi rõ họ tên)</div>
+        <div><%=h(phieu.getReader().getFullName())%></div>
+      </div>
+      <div>
+        <strong>Thủ thư tiếp nhận</strong>
+        <div class="print-sign-note">(Ký, ghi rõ họ tên)</div>
+        <div><%=h(phieu.getLibrarian().getFullName())%></div>
+      </div>
+    </div>
+    <% if (printing) { %>
+      <script>window.addEventListener("load", () => window.print());</script>
     <% } %>
-  </nav>
-  <% if (printing) { %>
-    <script>window.addEventListener("load", () => window.print());</script>
   <% } %>
-<% } %>
-</html>
+</section>
+<%@ include file="/WEB-INF/footer.jspf" %>

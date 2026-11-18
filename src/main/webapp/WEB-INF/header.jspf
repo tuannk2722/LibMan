@@ -1,0 +1,62 @@
+<%@ page pageEncoding="UTF-8" %>
+<%
+String _hdrTitle = (String) request.getAttribute("pageTitle");
+if (_hdrTitle == null || _hdrTitle.isBlank()) _hdrTitle = "Hệ thống Quản lý Thư viện";
+String _hdrFullTitle = _hdrTitle.contains("LibMan") ? _hdrTitle : _hdrTitle + " — LibMan";
+Object _hdrMember = session != null ? session.getAttribute("member") : null;
+String _hdrRoleLabel = null;
+String _hdrCode = null;
+String _hdrName = null;
+String _hdrHome = null;
+if (_hdrMember instanceof Reader9) {
+    Reader9 _hdrReader = (Reader9) _hdrMember;
+    _hdrRoleLabel = "Bạn đọc";
+    _hdrCode = _hdrReader.getReaderCode();
+    _hdrName = _hdrReader.getFullName();
+    _hdrHome = ctx(request) + "/view/bandoc/gdChinh.jsp";
+} else if (_hdrMember instanceof Librarian9 && "LIBRARIAN".equals(((Librarian9) _hdrMember).getPosition())) {
+    Librarian9 _hdrLib = (Librarian9) _hdrMember;
+    _hdrRoleLabel = "Thủ thư";
+    _hdrCode = _hdrLib.getEmployeeCode();
+    _hdrName = _hdrLib.getFullName();
+    _hdrHome = ctx(request) + "/view/thuthu/gdChinh.jsp";
+}
+%>
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title><%=h(_hdrFullTitle)%></title>
+<link rel="stylesheet" href="<%=ctx(request)%>/assets/css/libman.css">
+</head>
+<body>
+<header class="app-header screen">
+  <div class="container header-inner">
+    <a class="brand" href="<%=_hdrHome != null ? _hdrHome : ctx(request) + "/index.jsp"%>">
+      <span class="brand-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+          <path d="M8 7h8"/>
+          <path d="M8 11h6"/>
+        </svg>
+      </span>
+      <span class="brand-text">
+        <span class="brand-name">LibMan</span>
+        <span class="brand-sub">Hệ thống Quản lý Thư viện</span>
+      </span>
+    </a>
+    <% if (_hdrRoleLabel != null) { %>
+      <div class="header-user">
+        <span class="badge badge-role"><%=h(_hdrRoleLabel)%></span>
+
+        <form class="inline-form" method="post" action="<%=ctx(request)%>/view/thanhvien/doDangXuat.jsp">
+          <input type="hidden" name="csrf" value="<%=csrf%>">
+          <button class="btn btn-header" name="btnDangXuat">Đăng xuất</button>
+        </form>
+      </div>
+    <% } %>
+  </div>
+</header>
+<main class="app-main">
+<div class="container">
