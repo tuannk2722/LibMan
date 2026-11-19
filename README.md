@@ -22,7 +22,13 @@ CREATE USER 'libman_app'@'localhost' IDENTIFIED BY 'MAT_KHAU_RIENG';
 GRANT SELECT, INSERT, UPDATE ON LibMan.* TO 'libman_app'@'localhost';
 ```
 
-Nếu đã có database và tài khoản JDBC, dùng cấu hình sẵn có. `schema.sql` và `scenario-test.sql` chỉ nạp một lần trên database demo trống. File thứ hai thêm hai tài khoản mẫu và dữ liệu đang mượn. [Cách nạp file SQL trong MySQL](https://dev.mysql.com/doc/refman/8.0/en/mysql-batch-commands.html)
+Nếu đã có database và tài khoản JDBC, dùng cấu hình sẵn có. `schema.sql` chỉ chạy một lần trên database trống; `scenario-test.sql` tự làm sạch và nạp lại dữ liệu cho cả 15 bảng trong một transaction. Để nạp lại nhanh trên MySQL đã có sẵn schema `LibMan`:
+
+```powershell
+mysql --default-character-set=utf8mb4 -u root -p LibMan < db/scenario-test.sql
+```
+
+[Cách nạp file SQL trong MySQL](https://dev.mysql.com/doc/refman/8.0/en/mysql-batch-commands.html)
 
 ### Build và chạy
 
@@ -34,20 +40,14 @@ $env:CATALINA_HOME = 'D:\tools\apache-tomcat-10.1.62'
 .\run.ps1
 ```
 
-Script chạy `mvnw.cmd package`, triển khai `target/LibMan.war` vào `webapps/` và chạy Tomcat ngay trong terminal. Có thể truyền đường dẫn Tomcat qua `-TomcatHome`. Nếu đã đặt `CATALINA_BASE`, script dùng thư mục `webapps/` của instance đó. Mở [LibMan](http://127.0.0.1:8080/LibMan/) khi Tomcat khởi động xong. Hai tài khoản demo dùng mật khẩu `123456`.
-
-| Tài khoản | Vai trò | Thao tác thử |
-|---|---|---|
-| `maitn` | Bạn đọc | Đăng kí làm thẻ |
-| `hatt` | Thủ thư | Nhận trả tài liệu, tìm theo mã `DG009` |
-
+Script chạy `mvnw.cmd package`, triển khai `target/LibMan.war` vào `webapps/` và chạy Tomcat ngay trong terminal. Có thể truyền đường dẫn Tomcat qua `-TomcatHome`. Nếu đã đặt `CATALINA_BASE`, script dùng thư mục `webapps/` của instance đó. Mở [LibMan](http://127.0.0.1:8080/LibMan/) khi Tomcat khởi động xong.
 Nhấn `Ctrl+C` để dừng Tomcat. Sau khi sửa Java hoặc JSP, chạy lại `.\run.ps1`. Để chạy lại WAR đã build, dùng `.\run.ps1 -SkipBuild`. Nếu PowerShell chặn việc chạy script, dùng `powershell.exe -NoProfile -ExecutionPolicy RemoteSigned -File .\run.ps1` trong thư mục repo.
 
 Script mặc định kết nối `jdbc:mysql://localhost:3306/LibMan` với tài khoản `libman_app`. Đặt `LIBMAN_JDBC_URL` và `LIBMAN_DB_USER` trong cùng terminal nếu dùng database hoặc tài khoản khác. `LIBMAN_STUDENT_CARD_MONTHS` mặc định là `12` cho cả hai loại thẻ. Script dùng múi giờ `Asia/Ho_Chi_Minh` nếu chưa đặt `-Duser.timezone` qua `CATALINA_OPTS`.
 
 ## Tài liệu thiết kế
 
-Mở `spec/SPEC.md` để xem từng lớp, màn hình, nguồn thiết kế và các quyết định còn mở. `spec/TUAN-TU.md` ánh xạ đủ 23 thông điệp đăng kí thẻ và 54 thông điệp nhận trả sang mã. Các hình trong `spec/hinh/` được trích trực tiếp từ báo cáo Word.
+Mở `spec/SPEC.md` để xem từng lớp, màn hình, nguồn thiết kế và các quyết định còn mở. `spec/TUAN-TU.md` ánh xạ đủ 23 thông điệp đăng kí thẻ và 54 thông điệp nhận trả sang mã. Toàn bộ sơ đồ UML/ERD và wireframe giao diện (mã nguồn PlantUML tại `spec/diagrams/src/`, ảnh SVG tại `spec/diagrams/svg/`) được nhúng trực tiếp trong `spec/SPEC.md` và `spec/TUAN-TU.md`.
 
 ## Phạm vi sử dụng
 

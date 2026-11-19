@@ -1,0 +1,76 @@
+@startuml H3.6-sequence-card
+!include _theme.puml
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam ParticipantBackgroundColor #8AD4F5
+skinparam ParticipantBorderColor #1F2937
+skinparam ActorBackgroundColor #8AD4F5
+skinparam ActorBorderColor #1F2937
+
+actor "Reader" as Reader
+boundary "gdChinh.jsp" as gdChinh
+boundary "gdDangKyThe.jsp" as gdDangKyThe
+boundary "doLuuDangKyThe.jsp" as doLuu
+boundary "gdKetQua.jsp" as gdKetQua
+control "ReaderDAO" as ReaderDAO
+control "LibraryCardDAO" as LibraryCardDAO
+entity "Reader9" as Reader9
+entity "LibraryCard9" as LibraryCard9
+
+autonumber
+Reader -> gdChinh : chọn đăng kí làm thẻ
+activate gdChinh
+gdChinh -> gdDangKyThe : gọi
+deactivate gdChinh
+activate gdDangKyThe
+
+gdDangKyThe -> ReaderDAO : gọi
+activate ReaderDAO
+ReaderDAO -> ReaderDAO : getHoSoBanDoc(id)
+activate ReaderDAO
+ReaderDAO -> Reader9 : gọi
+activate Reader9
+Reader9 -> Reader9 : Reader9()
+activate Reader9
+deactivate Reader9
+Reader9 --> ReaderDAO : trả về
+deactivate Reader9
+deactivate ReaderDAO
+ReaderDAO --> gdDangKyThe : trả về
+deactivate ReaderDAO
+
+gdDangKyThe --> Reader : hiển thị
+Reader -> gdDangKyThe : nhập thông tin + chọn loại thẻ + bấm Thêm
+gdDangKyThe -> doLuu : gọi
+deactivate gdDangKyThe
+activate doLuu
+
+doLuu -> LibraryCardDAO : gọi
+activate LibraryCardDAO
+LibraryCardDAO -> LibraryCardDAO : dangKyThe(hoSo, type)
+activate LibraryCardDAO
+LibraryCardDAO -> LibraryCardDAO : getThe(readerId)
+activate LibraryCardDAO
+deactivate LibraryCardDAO
+LibraryCardDAO -> LibraryCard9 : gọi
+activate LibraryCard9
+LibraryCard9 -> LibraryCard9 : LibraryCard9()
+activate LibraryCard9
+deactivate LibraryCard9
+LibraryCard9 --> LibraryCardDAO : trả về
+deactivate LibraryCard9
+deactivate LibraryCardDAO
+LibraryCardDAO --> doLuu : trả về
+deactivate LibraryCardDAO
+
+doLuu -> gdKetQua : gọi
+deactivate doLuu
+activate gdKetQua
+gdKetQua --> Reader : hiển thị
+Reader -> gdKetQua : bấm OK
+gdKetQua -> gdChinh : gọi
+deactivate gdKetQua
+activate gdChinh
+gdChinh --> Reader : hiển thị
+deactivate gdChinh
+@enduml

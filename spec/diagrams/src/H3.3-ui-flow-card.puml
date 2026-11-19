@@ -1,0 +1,31 @@
+@startuml H3.3-ui-flow-card
+!include _theme.puml
+skinparam StateBackgroundColor #F8FAFC
+skinparam StateBorderColor #1E293B
+
+state "Trang chủ bạn đọc\n(view/bandoc/gdChinh.jsp)" as gdChinh {
+  gdChinh : Hiển thị "Xin chào, <tên bạn đọc>"
+  gdChinh : Thông tin hồ sơ & trạng thái thẻ hiện hành
+  gdChinh : Liên kết #dangkythe: "Đăng kí làm thẻ bạn đọc"
+}
+
+state "Đăng kí làm thẻ bạn đọc\n(view/bandoc/gdDangKyThe.jsp)" as gdDangKyThe {
+  gdDangKyThe : Mã bạn đọc (outMaBanDoc - chỉ đọc)
+  gdDangKyThe : Form sửa Họ tên, Ngày sinh, Địa chỉ, Điện thoại, Email
+  gdDangKyThe : Chọn Loại thẻ (inoutLoaiThe: Sinh viên | Thủ thư)
+  gdDangKyThe : Nút [Quay lại] · Nút [Thêm] -> doLuuDangKyThe.jsp
+}
+
+state "Kết quả đăng kí\n(view/bandoc/gdKetQua.jsp)" as gdKetQua {
+  gdKetQua : Thông báo thành công (lblThongBao)
+  gdKetQua : Mã bạn đọc (lblMaBanDoc) · Số thẻ mới cấp (lblSoThe)
+  gdKetQua : Nút [OK] (btnOkay)
+}
+
+[*] --> gdChinh
+gdChinh --> gdDangKyThe : Chọn "Đăng kí làm thẻ bạn đọc"
+gdDangKyThe --> gdChinh : Bấm [Quay lại]\nhoặc đã có thẻ còn hiệu lực\n(forward từ doLuuDangKyThe.jsp kèm thông báo)
+gdDangKyThe --> gdDangKyThe : Dữ liệu sai hoặc lỗi lưu\n(giữ giá trị đã nhập)
+gdDangKyThe --> gdKetQua : Bấm [Thêm] & lưu thành công\n(qua doLuuDangKyThe.jsp -> redirect)
+gdKetQua --> gdChinh : Bấm [OK]
+@enduml

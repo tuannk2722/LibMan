@@ -1,0 +1,70 @@
+@startuml H3.5-activity-card
+!include _theme.puml
+hide empty description
+skinparam nodesep 45
+skinparam ranksep 45
+skinparam StateBackgroundColor #FFFFFF
+skinparam StateBorderColor #222222
+
+[*] --> c_recv
+
+state "Xử lí tại gdChinh.jsp" as sChinh {
+  state "Nhận bạn đọc\ntừ phiên đăng nhập" as c_recv
+  state "Hiển thị giao diện chính" as c_show
+  c_recv --> c_show
+}
+
+state "Xử lí tại gdDangKyThe.jsp" as sDangKy {
+  state "Nhận id bạn đọc từ phiên" as dk_id
+  state "Lấy hồ sơ bạn đọc" as dk_get
+  state "Hiển thị mã, thông tin cá nhân,\nloại thẻ và các nút thao tác" as dk_form
+  dk_id --> dk_get
+}
+
+state "ReaderDAO:\ngetHoSoBanDoc(id)" as dao_get
+
+state "Xử lí tại doLuuDangKyThe.jsp" as sLuu {
+  state "Nhận hồ sơ đã nhập và loại thẻ;\ngiữ id của phiên đăng nhập" as luu_recv
+  state "Yêu cầu đăng kí và nhận kết quả" as luu_call
+  state kq_choice <<choice>>
+  luu_recv --> luu_call
+  luu_call -[hidden]down-> kq_choice
+}
+
+state "LibraryCardDAO:\ndangKyThe(hoSo, type)\nGọi nội bộ getThe(readerId)" as dao_reg
+
+state "Báo lỗi tại gdDangKyThe.jsp;\ngiữ dữ liệu đã nhập để\nsửa hoặc gửi lại" as err_form
+
+state "Báo đã có thẻ còn hiệu lực" as err_active
+
+state "Xử lí tại gdKetQua.jsp" as sKetQua {
+  state "Hiển thị thành công,\nmã bạn đọc và số thẻ" as kq_show
+}
+
+state end_merge <<choice>>
+
+sChinh -[hidden]right-> sDangKy
+sDangKy -[hidden]right-> dao_get
+sDangKy -[hidden]down-> sLuu
+sKetQua -[hidden]right-> sLuu
+
+c_show --> dk_id : [Đăng kí]
+dk_get --> dao_get
+dao_get --> dk_form : [lấy xong hồ sơ]
+
+dk_form --> luu_recv : [Thêm]
+dk_form --> end_merge : [Quay lại]
+
+luu_call --> dao_reg
+dao_reg --> kq_choice : [xử lí xong]
+
+kq_choice --> err_form : [dữ liệu sai hoặc lỗi lưu]
+err_form --> dk_form
+
+kq_choice --> kq_show : [thành công]
+kq_choice --> err_active : [đã có thẻ]
+
+err_active --> end_merge
+kq_show --> end_merge : [OK]
+end_merge --> [*] : Về gdChinh.jsp và kết thúc lượt đăng kí
+@enduml

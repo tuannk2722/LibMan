@@ -1,0 +1,43 @@
+@startuml H3.11-deployment
+!include _theme.puml
+skinparam linetype polyline
+
+node "Máy bạn đọc" <<device>> as readerPC {
+  node "Trình duyệt web" <<executionEnvironment>> as browserReader
+}
+
+node "Máy thủ thư" <<device>> as librarianPC {
+  node "Trình duyệt web" <<executionEnvironment>> as browserLibrarian
+}
+
+node "Máy nhân viên quản lí" <<device>> as managerPC {
+  node "Trình duyệt web" <<executionEnvironment>> as browserManager
+}
+
+node "Máy quét thẻ" <<device>> as scanner
+node "Máy in phiếu trả" <<device>> as printer
+
+node "Máy chủ ứng dụng" <<device>> as appServer {
+  node "Apache Tomcat / JVM" <<executionEnvironment>> {
+    artifact "LibMan.war\nview · dao · model\nMySQL JDBC driver" <<artifact>>
+  }
+}
+
+node "Máy chủ cơ sở dữ liệu" <<device>> as dbServer {
+  node "MySQL · CSDL LibMan" <<executionEnvironment>>
+}
+
+readerPC -[hidden]right- librarianPC
+librarianPC -[hidden]right- managerPC
+readerPC -[hidden]down- scanner
+managerPC -[hidden]down- printer
+
+librarianPC -down- scanner : USB / HID
+librarianPC -down- printer : USB
+
+readerPC -- appServer : HTTPS
+librarianPC -- appServer : HTTPS
+managerPC -- appServer : HTTPS
+
+appServer -- dbServer : JDBC / MySQL\nTCP/IP · mạng nội bộ
+@enduml

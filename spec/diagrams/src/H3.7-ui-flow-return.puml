@@ -1,0 +1,50 @@
+@startuml H3.7-ui-flow-return
+!include _theme.puml
+skinparam StateBackgroundColor #F8FAFC
+skinparam StateBorderColor #1E293B
+
+state "Trang chủ thủ thư\n(view/thuthu/gdChinh.jsp)" as gdChinh {
+  gdChinh : Xin chào thủ thư (<tên>, <mã nhân viên>)
+  gdChinh : Liên kết #lnkNhanTra: "Nhận trả tài liệu"
+  gdChinh : Ô tra nhanh phiếu trả theo idPhieu
+}
+
+state "Xác định bạn đọc\n(view/thuthu/gdTimBanDoc.jsp)" as gdTimBanDoc {
+  gdTimBanDoc : Nhập số thẻ (inSothe) hoặc mã bạn đọc (inMaBanDoc)
+  gdTimBanDoc : Chỉ dùng một loại mã mỗi lần tra cứu
+  gdTimBanDoc : Nút [Về trang chủ / Trở về] · Nút [Tìm]
+}
+
+state "Danh sách tài liệu đang mượn\n(view/thuthu/gdDSDangMuon.jsp)" as gdDSDangMuon {
+  gdDSDangMuon : Hiển thị mã bạn đọc, họ tên (outBanDoc)
+  gdDSDangMuon : Bảng các dòng mượn OPEN (tblDangMuon) + checkbox chonTra[]
+  gdDSDangMuon : Bảng phiếu trả gần đây (nếu có) để xem / in lại
+  gdDSDangMuon : Nút [Tìm bạn đọc khác] · Nút [Tiếp tục]
+}
+
+state "Nhập thông tin trả\n(view/thuthu/gdChiTietTra.jsp)" as gdChiTietTra {
+  gdChiTietTra : Hiển thị ngày trả hệ thống (outNgayTra)
+  gdChiTietTra : Bảng nhập tình trạng (inTinhTrang[]), phạt hỏng, phạt chậm
+  gdChiTietTra : Nút [Quay lại] · Nút [Lập phiếu tạm]
+}
+
+state "Phiếu trả tài liệu — Tạm / Đã lưu\n(view/thuthu/gdPhieuTra.jsp)" as gdPhieuTra {
+  gdPhieuTra : Phiếu tạm (id = 0): đối chiếu & thu tiền -> [Xác nhận nhận trả], [In phiếu trả] bị khóa
+  gdPhieuTra : Phiếu đã lưu (PAID / NO_FINE): có mã phiếu, mở khóa [In phiếu trả]
+  gdPhieuTra : Nút [Quay lại] (khi tạm) · Nút [Về trang chủ] (sau khi lưu)
+}
+
+[*] --> gdChinh
+gdChinh --> gdTimBanDoc : Chọn "Nhận trả tài liệu"
+gdChinh --> gdPhieuTra : Tìm phiếu theo idPhieu
+gdTimBanDoc --> gdChinh : Về trang chủ / Trở về
+gdTimBanDoc --> gdDSDangMuon : Tìm thấy bạn đọc\n(hiển thị dòng OPEN hoặc báo trống)
+gdDSDangMuon --> gdTimBanDoc : Tìm bạn đọc khác
+gdDSDangMuon --> gdChiTietTra : Chọn >= 1 bản sao,\nbấm [Tiếp tục]
+gdDSDangMuon --> gdPhieuTra : Xem / In lại phiếu cũ
+gdChiTietTra --> gdDSDangMuon : Bấm [Quay lại]
+gdChiTietTra --> gdPhieuTra : Dữ liệu hợp lệ -> Lập phiếu tạm\n(qua doLapPhieuTam.jsp)
+gdPhieuTra --> gdChiTietTra : Bấm [Quay lại] sửa chi tiết\n(khi còn là phiếu tạm)
+gdPhieuTra --> gdPhieuTra : Bấm [Xác nhận nhận trả] (doLuuPhieuTra.jsp)\nhoặc [In phiếu trả] (doInPhieuTra.jsp)
+gdPhieuTra --> gdChinh : Bấm [Về trang chủ]
+@enduml

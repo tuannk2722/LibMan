@@ -1,0 +1,25 @@
+@startuml H3.12-package
+!include _theme.puml
+skinparam PackageStyle folder
+skinparam nodesep 40
+skinparam ranksep 50
+
+package view {
+  package thanhvien
+  package thuthu
+  package quanli
+  package bandoc
+}
+
+package dao
+package model
+
+' Giữ thứ tự ngang của 4 gói con trong view
+thanhvien -[hidden]right- thuthu
+thuthu -[hidden]right- quanli
+quanli -[hidden]right- bandoc
+
+view ..> dao : <<use>>
+dao ..> model : <<use>>
+view ..> model : <<use>>
+@enduml

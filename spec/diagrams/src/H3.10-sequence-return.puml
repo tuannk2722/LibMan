@@ -1,0 +1,155 @@
+@startuml H3.10-sequence-return
+!include _theme.puml
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam ParticipantBackgroundColor #8AD4F5
+skinparam ParticipantBorderColor #1F2937
+skinparam ActorBackgroundColor #8AD4F5
+skinparam ActorBorderColor #1F2937
+
+actor "Thủ thư" as ThuThu
+boundary "gdChinh.jsp" as gdChinh
+boundary "gdTimBanDoc.jsp" as gdTimBanDoc
+boundary "gdDSDangMuon.jsp" as gdDSDangMuon
+boundary "gdChiTietTra.jsp" as gdChiTietTra
+boundary "doLapPhieuTam.jsp" as doLapTam
+boundary "gdPhieuTra.jsp" as gdPhieuTra
+boundary "doLuuPhieuTra.jsp" as doLuuPhieu
+boundary "doInPhieuTra.jsp" as doInPhieu
+control "ReaderDAO" as ReaderDAO
+control "LoanDetailDAO" as LoanDetailDAO
+control "ReturnReceiptDAO" as ReturnReceiptDAO
+entity "Reader9" as Reader9
+entity "LoanDetail9" as LoanDetail9
+entity "ReturnDetail9" as ReturnDetail9
+entity "ReturnReceipt9" as ReturnReceipt9
+
+autonumber
+ThuThu -> gdChinh : chọn nhận trả
+activate gdChinh
+gdChinh -> gdTimBanDoc : gọi
+deactivate gdChinh
+activate gdTimBanDoc
+
+gdTimBanDoc --> ThuThu : hiển thị
+ThuThu -> gdTimBanDoc : quét thẻ + bấm Tìm
+gdTimBanDoc -> gdDSDangMuon : gọi
+deactivate gdTimBanDoc
+activate gdDSDangMuon
+
+gdDSDangMuon -> ReaderDAO : gọi
+activate ReaderDAO
+ReaderDAO -> ReaderDAO : getBanDocTheoSoThe(soThe)
+activate ReaderDAO
+ReaderDAO -> Reader9 : gọi
+activate Reader9
+Reader9 -> Reader9 : Reader9()
+activate Reader9
+deactivate Reader9
+Reader9 --> ReaderDAO : trả về
+deactivate Reader9
+deactivate ReaderDAO
+ReaderDAO --> gdDSDangMuon : trả về
+deactivate ReaderDAO
+
+gdDSDangMuon -> LoanDetailDAO : gọi
+activate LoanDetailDAO
+LoanDetailDAO -> LoanDetailDAO : getDSDangMuon(readerId)
+activate LoanDetailDAO
+LoanDetailDAO -> LoanDetail9 : gọi
+activate LoanDetail9
+LoanDetail9 -> LoanDetail9 : LoanDetail9()
+activate LoanDetail9
+deactivate LoanDetail9
+LoanDetail9 --> LoanDetailDAO : trả về
+deactivate LoanDetail9
+deactivate LoanDetailDAO
+LoanDetailDAO --> gdDSDangMuon : trả về
+deactivate LoanDetailDAO
+
+gdDSDangMuon --> ThuThu : hiển thị
+ThuThu -> gdDSDangMuon : chọn danh sách trả
+gdDSDangMuon -> gdChiTietTra : gọi
+deactivate gdDSDangMuon
+activate gdChiTietTra
+
+gdChiTietTra --> ThuThu : hiển thị
+ThuThu -> gdChiTietTra : nhập tình trạng, phạt + bấm Lập phiếu tạm
+gdChiTietTra -> doLapTam : gọi
+deactivate gdChiTietTra
+activate doLapTam
+
+doLapTam -> doLapTam : kiểm tra hợp lệ
+activate doLapTam
+deactivate doLapTam
+
+doLapTam -> ReturnDetail9 : gọi
+activate ReturnDetail9
+ReturnDetail9 -> ReturnDetail9 : ReturnDetail9()
+activate ReturnDetail9
+deactivate ReturnDetail9
+ReturnDetail9 -> ReturnDetail9 : tinhTienPhatDong()
+activate ReturnDetail9
+deactivate ReturnDetail9
+ReturnDetail9 --> doLapTam : trả về
+deactivate ReturnDetail9
+
+doLapTam -> ReturnReceipt9 : gọi
+activate ReturnReceipt9
+ReturnReceipt9 -> ReturnReceipt9 : ReturnReceipt9()
+activate ReturnReceipt9
+deactivate ReturnReceipt9
+ReturnReceipt9 -> ReturnReceipt9 : tinhTongPhat()
+activate ReturnReceipt9
+deactivate ReturnReceipt9
+ReturnReceipt9 --> doLapTam : trả về
+deactivate ReturnReceipt9
+
+doLapTam -> gdPhieuTra : gọi
+deactivate doLapTam
+activate gdPhieuTra
+gdPhieuTra --> ThuThu : hiển thị
+ThuThu -> gdPhieuTra : đã thu đủ 40.000 đ; xác nhận nhận trả
+gdPhieuTra -> doLuuPhieu : gọi
+activate doLuuPhieu
+
+doLuuPhieu -> ReturnReceiptDAO : gọi
+activate ReturnReceiptDAO
+ReturnReceiptDAO -> ReturnReceiptDAO : xacNhanTra(phieuTam)
+activate ReturnReceiptDAO
+deactivate ReturnReceiptDAO
+ReturnReceiptDAO --> doLuuPhieu : trả về
+deactivate ReturnReceiptDAO
+doLuuPhieu --> gdPhieuTra : trả về
+deactivate doLuuPhieu
+
+gdPhieuTra --> ThuThu : hiển thị
+ThuThu -> gdPhieuTra : chọn In phiếu trả
+gdPhieuTra -> doInPhieu : gọi
+activate doInPhieu
+
+doInPhieu -> ReturnReceiptDAO : gọi
+activate ReturnReceiptDAO
+ReturnReceiptDAO -> ReturnReceiptDAO : getPhieuTra(idPhieu)
+activate ReturnReceiptDAO
+ReturnReceiptDAO -> ReturnReceipt9 : gọi
+activate ReturnReceipt9
+ReturnReceipt9 -> ReturnReceipt9 : ReturnReceipt9()
+activate ReturnReceipt9
+deactivate ReturnReceipt9
+ReturnReceipt9 --> ReturnReceiptDAO : trả về
+deactivate ReturnReceipt9
+deactivate ReturnReceiptDAO
+ReturnReceiptDAO --> doInPhieu : trả về
+deactivate ReturnReceiptDAO
+doInPhieu --> gdPhieuTra : trả về
+deactivate doInPhieu
+
+gdPhieuTra --> ThuThu : hiển thị
+ThuThu -> gdPhieuTra : về trang chủ
+gdPhieuTra -> gdChinh : gọi
+deactivate gdPhieuTra
+activate gdChinh
+gdChinh --> ThuThu : hiển thị
+deactivate gdChinh
+@enduml

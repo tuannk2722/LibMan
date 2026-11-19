@@ -1,0 +1,103 @@
+@startuml H3.4-class-card
+!include _theme.puml
+hide circle
+skinparam nodesep 55
+skinparam ranksep 55
+skinparam ClassBackgroundColor #8AD4F5
+skinparam ClassHeaderBackgroundColor #8AD4F5
+skinparam ClassBorderColor #1F2937
+
+class "gdChinh.jsp" as gdChinh {
+  -dangkythe : link
+  -bandoc : Reader9
+}
+
+class "gdDangKyThe.jsp" as gdDangKyThe {
+  -outMaBanDoc : label
+  -inoutHoTen : text
+  -inoutNgaySinh : date
+  -inoutDiaChi : text
+  -inoutDienThoai : tel
+  -inoutEmail : email
+  -inoutLoaiThe : select
+  -btnThem : submit
+  -btnQuayLai : submit
+  -bandoc : Reader9
+}
+
+class "doLuuDangKyThe.jsp" as doLuu {
+  -theMoi : LibraryCard9
+}
+
+class "gdKetQua.jsp" as gdKetQua {
+  -lblThongBao : label
+  -lblMaBanDoc : label
+  -lblSoThe : label
+  -btnOkay : link
+}
+
+abstract class DAO {
+  #con : Connection
+  #DAO()
+}
+
+class ReaderDAO {
+  +ReaderDAO()
+  +getHoSoBanDoc(id : int) : Reader9
+  +capNhatHoSoBanDoc(hoSo : Reader9) : void
+}
+
+class LibraryCardDAO {
+  +LibraryCardDAO()
+  +getThe(readerId : int) : LibraryCard9 | null
+  +dangKyThe(hoSo : Reader9, type : String) : LibraryCard9
+}
+
+abstract class Member9 {
+  -id : int
+  -username : String
+  -passwordHash : String
+  -fullName : String
+  -birthDate : LocalDate
+  -address : String
+  -email : String
+  -phone : String
+}
+
+class Reader9 {
+  -readerCode : String
+  -status : String
+  -cards : LibraryCard9[]
+}
+
+class LibraryCard9 {
+  -id : int
+  -cardNumber : String
+  -cardType : String
+  -issueDate : LocalDate
+  -expiryDate : LocalDate
+  -status : String
+  -reader : Reader9
+}
+
+' View navigation / dependencies
+gdChinh -right- gdDangKyThe
+gdChinh -right- gdKetQua
+gdDangKyThe -right- gdKetQua
+gdDangKyThe -- gdDangKyThe
+gdDangKyThe -down- doLuu
+gdKetQua -down- doLuu
+
+' JSP -> DAO
+gdDangKyThe -- ReaderDAO
+doLuu -- LibraryCardDAO
+
+' DAO inheritance & Model dependencies
+DAO <|-- ReaderDAO
+DAO <|-- LibraryCardDAO
+
+ReaderDAO -- Reader9
+LibraryCardDAO -- LibraryCard9
+Member9 <|-right- Reader9
+Reader9 "1" *-right- "0..*" LibraryCard9
+@enduml

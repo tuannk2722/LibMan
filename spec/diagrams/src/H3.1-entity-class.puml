@@ -1,0 +1,184 @@
+@startuml H3.1-entity-class
+!include _theme.puml
+hide circle
+hide empty methods
+skinparam nodesep 55
+skinparam ranksep 65
+skinparam ClassBackgroundColor #FFFFFF
+skinparam ClassHeaderBackgroundColor #FFFFFF
+
+abstract class Member9 {
+  -id : int
+  -username : String
+  -passwordHash : String
+  -fullName : String
+  -birthDate : LocalDate
+  -address : String
+  -email : String
+  -phone : String
+}
+
+class Reader9 {
+  -readerCode : String
+  -status : String
+  -cards : LibraryCard9[]
+}
+
+class ReaderStatistic9 {
+  -/borrowCount : long
+}
+
+class LibraryCard9 {
+  -id : int
+  -cardNumber : String
+  -cardType : String
+  -issueDate : LocalDate
+  -expiryDate : LocalDate
+  -status : String
+  -reader : Reader9
+}
+
+abstract class Employee9 {
+  -employeeCode : String
+  -position : String
+}
+
+class Librarian9 {
+}
+
+class Manager9 {
+}
+
+class DocumentType9 {
+  -id : int
+  -typeName : String
+  -description : String
+}
+
+class Document9 {
+  -id : int
+  -documentCode : String
+  -title : String
+  -author : String
+  -publisher : String
+  -publicationYear : Integer
+  -standardNumber : String
+  -issueNumber : String
+  -catalogStatus : String
+  -documentType : DocumentType9
+  -copies : DocumentCopy9[]
+}
+
+class DocumentStatistic9 {
+  -/borrowCount : long
+}
+
+class DocumentCopy9 {
+  -id : int
+  -copyCode : String
+  -shelfLocation : String
+  -condition : String
+  -circulationStatus : String
+  -document : Document9
+  -importDetail : ImportDetail9
+}
+
+class Loan9 {
+  -id : int
+  -borrowDate : LocalDate
+  -/status : String
+  -reader : Reader9
+  -librarian : Librarian9
+  -details : LoanDetail9[]
+}
+
+class LoanDetail9 {
+  -id : int
+  -dueDate : LocalDate
+  -status : String
+  -loan : Loan9
+  -copy : DocumentCopy9
+}
+
+class ReturnReceipt9 {
+  -id : int
+  -returnDate : LocalDate
+  -paymentStatus : String
+  -/totalFine : BigDecimal
+  -reader : Reader9
+  -librarian : Librarian9
+  -details : ReturnDetail9[]
+}
+
+class ReturnDetail9 {
+  -id : int
+  -conditionAtReturn : String
+  -damageFine : BigDecimal
+  -lateFine : BigDecimal
+  -/lineFine : BigDecimal
+  -loanDetail : LoanDetail9
+}
+
+class Supplier9 {
+  -id : int
+  -supplierCode : String
+  -name : String
+  -address : String
+  -phone : String
+  -email : String
+  -status : String
+}
+
+class SupplierStatistic9 {
+  -/totalQuantity : long
+}
+
+class ImportReceipt9 {
+  -id : int
+  -importDate : LocalDate
+  -note : String
+  -supplier : Supplier9
+  -librarian : Librarian9
+  -details : ImportDetail9[]
+}
+
+class ImportDetail9 {
+  -id : int
+  -quantity : int
+  -document : Document9
+  -copies : DocumentCopy9[]
+}
+
+' Inheritance
+Member9 <|-right- Reader9
+Member9 <|-- Employee9
+Reader9 <|-- ReaderStatistic9
+Employee9 <|-- Manager9
+Employee9 <|-right- Librarian9
+Document9 <|-up- DocumentStatistic9
+Supplier9 <|-left- SupplierStatistic9
+
+' Reader & Card
+Reader9 "1" *-right- "0..*" LibraryCard9
+
+' Circulation: Loan & Return
+Reader9 "1" -- "0..*" Loan9
+Librarian9 "1" -right- "0..*" Loan9
+Loan9 "1" *-right- "1..*" LoanDetail9
+LoanDetail9 "0..*" o-right- "1" DocumentCopy9
+
+Reader9 "1" -- "0..*" ReturnReceipt9
+Librarian9 "1" -right- "0..*" ReturnReceipt9
+ReturnReceipt9 "1" *-right- "1..*" ReturnDetail9
+LoanDetail9 "1" -- "0..1" ReturnDetail9
+
+' Import & Catalog
+Supplier9 "1" -- "0..*" ImportReceipt9
+Librarian9 "1" -- "0..*" ImportReceipt9
+ImportReceipt9 "1" *-right- "1..*" ImportDetail9
+ImportDetail9 "0..1" o-down- "1..*" DocumentCopy9
+ImportDetail9 "0..*" o-down- "1" Document9
+
+DocumentType9 "1" -- "0..*" Document9
+Document9 "1" *-- "0..*" DocumentCopy9
+@enduml

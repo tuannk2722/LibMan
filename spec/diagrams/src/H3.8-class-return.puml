@@ -1,0 +1,251 @@
+@startuml H3.8-class-return
+!include _theme.puml
+hide circle
+skinparam nodesep 50
+skinparam ranksep 55
+skinparam ClassBackgroundColor #8AD4F5
+skinparam ClassHeaderBackgroundColor #8AD4F5
+skinparam ClassBorderColor #1F2937
+
+' === View layer (JSP) ===
+class "gdChinh.jsp" as gdChinh {
+  -lnkNhanTra : link
+  -thuthu : Librarian9
+}
+
+class "gdTimBanDoc.jsp" as gdTimBanDoc {
+  -inSothe : text
+  -inMaBanDoc : text
+  -btnTim : submit
+  -thuthu : Librarian9
+}
+
+class "gdDSDangMuon.jsp" as gdDSDangMuon {
+  -outBanDoc : label
+  -tblDangMuon : table
+  -chonTra : checkbox[]
+  -btnTiepTuc : submit
+  -btnTimLai : link
+  -banDoc : Reader9
+  -dsMuon : LoanDetail9[]
+  -thuthu : Librarian9
+}
+
+class "gdChiTietTra.jsp" as gdChiTietTra {
+  -tblTaiLieuMuon : table
+  -outNgayTra : label
+  -inTinhTrang : select[]
+  -inPhatHong : number[]
+  -inPhatCham : number[]
+  -btnLapPhieuTam : submit
+  -btnQuayLai : link
+  -dsChon : LoanDetail9[]
+  -bandoc : Reader9
+  -thuthu : Librarian9
+}
+
+class "gdPhieuTra.jsp" as gdPhieuTra {
+  -outBanDoc : label
+  -outThuThu : label
+  -outMaPhieu : label
+  -outNgayTra : label
+  -tblChiTietTra : table
+  -outTongPhat : label
+  -outThanhToan : label
+  -btnXacNhanTra : submit
+  -btnInPhieu : submit
+  -btnQuayLai : link
+  -btnTrangChu : link
+  -phieu : ReturnReceipt9
+}
+
+class "doLapPhieuTam.jsp" as doLapTam {
+  -dsTra : ReturnDetail9[]
+  -phieuTam : ReturnReceipt9
+}
+
+class "doLuuPhieuTra.jsp" as doLuuPhieu {
+  -phieuTam : ReturnReceipt9
+  -phieuDaLuu : ReturnReceipt9
+}
+
+class "doInPhieuTra.jsp" as doInPhieu {
+  -idPhieu : int
+  -phieu : ReturnReceipt9
+}
+
+' === DAO layer ===
+abstract class DAO {
+  #con : Connection
+  #DAO()
+}
+
+class ReaderDAO {
+  +ReaderDAO()
+  +getBanDocTheoMa(ma : String) : Reader9
+  +getBanDocTheoSoThe(soThe : String) : Reader9
+}
+
+class LoanDetailDAO {
+  +LoanDetailDAO()
+  +getDSDangMuon(readerId : int) : LoanDetail9[]
+}
+
+class ReturnReceiptDAO {
+  +ReturnReceiptDAO()
+  +xacNhanTra(phieuTam : ReturnReceipt9) : ReturnReceipt9
+  +getPhieuTra(idPhieu : int) : ReturnReceipt9
+}
+
+' === Model layer ===
+abstract class Member9 {
+  -id : int
+  -username : String
+  -passwordHash : String
+  -fullName : String
+  -birthDate : LocalDate
+  -address : String
+  -email : String
+  -phone : String
+}
+
+abstract class Employee9 {
+  -employeeCode : String
+  -position : String
+}
+
+class Librarian9 {
+}
+
+class Reader9 {
+  -readerCode : String
+  -status : String
+  -cards : LibraryCard9[]
+}
+
+class LibraryCard9 {
+  -id : int
+  -cardNumber : String
+  -cardType : String
+  -issueDate : LocalDate
+  -expiryDate : LocalDate
+  -status : String
+  -reader : Reader9
+}
+
+class Loan9 {
+  -id : int
+  -borrowDate : LocalDate
+  -/status : String
+  -reader : Reader9
+  -librarian : Librarian9
+  -details : LoanDetail9[]
+}
+
+class LoanDetail9 {
+  -id : int
+  -dueDate : LocalDate
+  -status : String
+  -loan : Loan9
+  -copy : DocumentCopy9
+}
+
+class ReturnReceipt9 {
+  -id : int
+  -returnDate : LocalDate
+  -paymentStatus : String
+  -/totalFine : BigDecimal
+  -reader : Reader9
+  -librarian : Librarian9
+  -details : ReturnDetail9[]
+  +tinhTongPhat() : BigDecimal
+}
+
+class ReturnDetail9 {
+  -id : int
+  -conditionAtReturn : String
+  -damageFine : BigDecimal
+  -lateFine : BigDecimal
+  -/lineFine : BigDecimal
+  -loanDetail : LoanDetail9
+  +tinhTienPhatDong() : BigDecimal
+}
+
+class DocumentCopy9 {
+  -id : int
+  -copyCode : String
+  -shelfLocation : String
+  -condition : String
+  -circulationStatus : String
+  -document : Document9
+  -importDetail : ImportDetail9
+}
+
+class Document9 {
+  -id : int
+  -documentCode : String
+  -title : String
+  -author : String
+  -publisher : String
+  -publicationYear : Integer
+  -standardNumber : String
+  -issueNumber : String
+  -catalogStatus : String
+  -documentType : DocumentType9
+  -copies : DocumentCopy9[]
+}
+
+class DocumentType9 {
+  -id : int
+  -typeName : String
+  -description : String
+}
+
+' View navigation
+gdChinh -right- gdTimBanDoc
+gdTimBanDoc -right- gdDSDangMuon
+gdDSDangMuon -right- gdChiTietTra
+gdChiTietTra -right- gdPhieuTra
+
+gdChiTietTra -down- doLapTam
+gdPhieuTra -down- doLapTam
+gdPhieuTra -down- doLuuPhieu
+gdPhieuTra -down- doInPhieu
+
+' View -> DAO & Model
+gdDSDangMuon -- ReaderDAO
+gdDSDangMuon -- LoanDetailDAO
+doLapTam -- ReturnDetail9
+doLapTam -- ReturnReceipt9
+doLuuPhieu -- ReturnReceiptDAO
+doInPhieu -- ReturnReceiptDAO
+
+' DAO inheritance & dependencies
+DAO <|-- ReaderDAO
+DAO <|-- LoanDetailDAO
+DAO <|-- ReturnReceiptDAO
+
+ReaderDAO -- Reader9
+ReaderDAO -- LibraryCard9
+LoanDetailDAO -- LoanDetail9
+ReturnReceiptDAO -- ReturnReceipt9
+
+' Model relationships
+Member9 <|-right- Reader9
+Member9 <|-- Employee9
+Employee9 <|-right- Librarian9
+
+Reader9 "1" *-- "0..*" LibraryCard9
+Reader9 "1" -- "0..*" Loan9
+Reader9 "1" -- "0..*" ReturnReceipt9
+Librarian9 "1" -- "0..*" Loan9
+Librarian9 "1" -- "0..*" ReturnReceipt9
+
+Loan9 "1" *-right- "1..*" LoanDetail9
+LoanDetail9 "0..*" o-right- "1" DocumentCopy9
+LoanDetail9 "1" -- "0..1" ReturnDetail9
+
+ReturnReceipt9 "1" *-right- "1..*" ReturnDetail9
+Document9 "1" *-- "0..*" DocumentCopy9
+DocumentType9 "1" -- "0..*" Document9
+@enduml

@@ -23,7 +23,15 @@
 | Nhập | Supplier9, ImportReceipt9, ImportDetail9 | Một phiếu nhập của một nhà cung cấp và một thủ thư. Mỗi dòng có quantity dương và một document. ImportDetail9.copies gồm đúng quantity bản sao khi hoàn tất nhập; các bản cùng đầu tài liệu. Chỉ FK importDetailId có thể vắng. |
 | Thống kê | DocumentStatistic9, ReaderStatistic9, SupplierStatistic9 | Lớp con tương ứng Document9, Reader9, Supplier9. Chỉ số kiểu long đến từ truy vấn đếm dòng mượn theo đầu tài liệu, đếm phiếu mượn theo bạn đọc, cộng quantity theo nhà cung cấp. |
 
-Danh sách thuộc tính có kiểu và bội số gốc nằm trong `hinh/H3.1.png`; cột, PK và FK trong `hinh/H3.2.png` và `db/schema.sql`. Trường chi tiết ở Hình 3.4/3.8 là tập con dùng cho màn hình. Ví dụ status của Reader9, catalogStatus của Document9 và mảng copies vẫn có trong model theo Hình 3.1. DAO đọc theo nhu cầu màn hình, ví dụ truy vấn OPEN chỉ nạp loan.borrowDate, các định danh, copy.copyCode và copy.document.title cần dùng. Muốn tính trạng thái cả phiếu mượn phải nạp đủ các dòng của phiếu.
+### Sơ đồ thực thể và CSDL
+
+- **Hình 3.1 — Sơ đồ lớp thực thể** ([Mã nguồn PlantUML](diagrams/src/H3.1-entity-class.puml)):
+
+![Hình 3.1 — Sơ đồ lớp thực thể](diagrams/svg/H3.1-entity-class.svg)
+
+- **Hình 3.2 — Sơ đồ cơ sở dữ liệu** ([Mã nguồn PlantUML](diagrams/src/H3.2-erd-schema.puml), đối chiếu DDL tại [`db/schema.sql`](../db/schema.sql)):
+
+![Hình 3.2 — Sơ đồ cơ sở dữ liệu](diagrams/svg/H3.2-erd-schema.svg)
 
 ## Đăng nhập và đăng xuất (view/thanhvien)
 
@@ -46,6 +54,24 @@ Danh sách thuộc tính có kiểu và bội số gốc nằm trong `hinh/H3.1.
 `ReaderDAO.getHoSoBanDoc(int): Reader9`; `ReaderDAO.capNhatHoSoBanDoc(Reader9): void`; `LibraryCardDAO.getThe(int): LibraryCard9` (có thể null); `LibraryCardDAO.dangKyThe(Reader9,String): LibraryCard9`. Xem diễn biến từng thông điệp ở TUAN-TU.md.
 
 Khi ghi, khóa tblReader9 theo id. Sau đó getThe xét status và khoảng issueDate ≤ ngày kiểm tra ≤ expiryDate. Cập nhật tblMember9 và thêm thẻ trên cùng Connection. Commit trước khi báo thành công. Giữ các thẻ cũ. Các ngày, trạng thái, số thẻ và readerId không nhận từ form.
+
+### Sơ đồ thiết kế — Đăng kí làm thẻ
+
+- **Hình 3.3 — Giao diện & luồng màn hình** ([Luồng PlantUML](diagrams/src/H3.3-ui-flow-card.puml)):
+
+![Hình 3.3 — Wireframe giao diện Đăng kí làm thẻ](diagrams/svg/H3.3-ui-wireframe-card.svg)
+
+![Hình 3.3 — Luồng chuyển màn hình Đăng kí làm thẻ](diagrams/svg/H3.3-ui-flow-card.svg)
+
+- **Hình 3.4 — Sơ đồ lớp thiết kế Đăng kí làm thẻ** ([Mã nguồn PlantUML](diagrams/src/H3.4-class-card.puml)):
+
+![Hình 3.4 — Sơ đồ lớp thiết kế Đăng kí làm thẻ](diagrams/svg/H3.4-class-card.svg)
+
+- **Hình 3.5 — Sơ đồ hoạt động Đăng kí làm thẻ** ([Mã nguồn PlantUML](diagrams/src/H3.5-activity-card.puml)):
+
+![Hình 3.5 — Sơ đồ hoạt động Đăng kí làm thẻ](diagrams/svg/H3.5-activity-card.svg)
+
+> Xem **Hình 3.6 — Sơ đồ tuần tự Đăng kí làm thẻ** (23 thông điệp) tại [`TUAN-TU.md`](TUAN-TU.md#hình-36--đăng-kí-làm-thẻ).
 
 ## Nhận trả tài liệu
 
@@ -74,6 +100,26 @@ Trong xacNhanTra, khóa bản sao và dòng mượn, kiểm tra đúng bạn đ�
 
 Hồ sơ DG009 – Nguyễn Thị Mai; thẻ T009089; thủ thư Trần Thu Hà. Kịch bản gốc cấp thẻ ngày 22/08/2026, trả ngày 22/09/2026. Trước xác nhận, chưa có phiếu chính thức. Thủ thư thu 40.000 đồng và bấm một lần. Kết quả gồm một phiếu PAID, hai dòng trả; in lại cùng mã phiếu. Chạy một trường hợp khác với tổng bằng 0 để kiểm tra NO_FINE.
 
+### Sơ đồ thiết kế — Nhận trả tài liệu
+
+- **Hình 3.7a & 3.7b — Giao diện & luồng màn hình** ([Luồng PlantUML](diagrams/src/H3.7-ui-flow-return.puml)):
+
+![Hình 3.7a — Wireframe Nhận trả tài liệu (phần 1)](diagrams/svg/H3.7a-ui-wireframe-return-1.svg)
+
+![Hình 3.7b — Wireframe Nhận trả tài liệu (phần 2)](diagrams/svg/H3.7b-ui-wireframe-return-2.svg)
+
+![Hình 3.7 — Luồng chuyển màn hình Nhận trả tài liệu](diagrams/svg/H3.7-ui-flow-return.svg)
+
+- **Hình 3.8 — Sơ đồ lớp thiết kế Nhận trả tài liệu** ([Mã nguồn PlantUML](diagrams/src/H3.8-class-return.puml)):
+
+![Hình 3.8 — Sơ đồ lớp thiết kế Nhận trả tài liệu](diagrams/svg/H3.8-class-return.svg)
+
+- **Hình 3.9 — Sơ đồ hoạt động Nhận trả tài liệu** ([Mã nguồn PlantUML](diagrams/src/H3.9-activity-return.puml)):
+
+![Hình 3.9 — Sơ đồ hoạt động Nhận trả tài liệu](diagrams/svg/H3.9-activity-return.svg)
+
+> Xem **Hình 3.10 — Sơ đồ tuần tự Nhận trả tài liệu** (54 thông điệp) tại [`TUAN-TU.md`](TUAN-TU.md#hình-310--nhận-trả-tài-liệu).
+
 ## Những quyết định và chính sách đã chốt
 
 - **Loại thẻ và thời hạn thẻ:** Hệ thống dùng 2 loại thẻ chính là `Sinh viên` và `Thủ thư` (`LibraryCardDAO.VALID_CARD_TYPES`), thời hạn cố định mặc định là `12` tháng (`LibraryCardDAO.DEFAULT_CARD_MONTHS = 12`). Có thể ghi đè số tháng qua biến môi trường `LIBMAN_STUDENT_CARD_MONTHS` nếu cần. Ngày hết hạn bằng ngày cấp cộng số tháng, ngày cuối vẫn còn hiệu lực.
@@ -85,3 +131,51 @@ Hồ sơ DG009 – Nguyễn Thị Mai; thẻ T009089; thủ thư Trần Thu Hà.
 - **Phiên bản phiếu tạm và đồng bộ hóa:** Mỗi lượt nhận trả (`selection`) và mỗi bạn đọc trong phiên chỉ có tối đa một `draft` hiện hành (`activeDraft.<selection>`, `activeReaderDraft.<readerId>`). Khi lập phiếu tạm mới trong `doLapPhieuTam.jsp`, bản tạm cũ bị xóa khỏi phiên; `doLuuPhieuTra.jsp` đồng bộ trên `session`, kiểm tra phiên bản hiện hành và từ chối bản cũ với HTTP 409.
 - **Kiểm tra dữ liệu và bảo mật phiên:** Điện thoại dùng 8–15 chữ số với dấu `+` tùy chọn; email kiểm tra định dạng cơ bản. Mật khẩu trong `tblMember9.passwordHash` dùng SHA-256 hex (`MemberDAO.bamMatKhau`). Các mã `lookup`, `selection`, `draft` và `csrf` phục vụ trao đổi an toàn trong phiên, không tạo cột nghiệp vụ.
 - **Phạm vi mở rộng:** Các gói chính và thư mục `view/thanhvien`, `view/bandoc`, `view/thuthu` có mã thực thi; phần thống kê nằm ở `view/quanli`. Khi triển khai các luồng còn lại, cần kiểm tra loại hồ sơ và `position` trong giao dịch tạo tài khoản, khóa bản sao trước khi cho mượn, kiểm tra số lượng và `documentId` khi nhập. Chi tiết nhập tài liệu, quản lí danh mục, tra cứu và thống kê nằm ngoài hai modul thiết kế chi tiết; bảo toàn lịch sử khi ngừng sử dụng các đối tượng đã phát sinh giao dịch.
+
+## Kiến trúc triển khai, gói và cấu trúc thư mục
+
+- **Hình 3.11 — Sơ đồ triển khai** ([Mã nguồn PlantUML](diagrams/src/H3.11-deployment.puml)):
+
+![Hình 3.11 — Sơ đồ triển khai LibMan](diagrams/svg/H3.11-deployment.svg)
+
+- **Hình 3.12 — Sơ đồ gói** ([Mã nguồn PlantUML](diagrams/src/H3.12-package.puml)):
+
+![Hình 3.12 — Sơ đồ gói LibMan](diagrams/svg/H3.12-package.svg)
+
+- **Cấu trúc thư mục dự án** (dạng Maven WAR; trong Eclipse, `src/main/java` tương ứng *Java Resources* và `src/main/webapp` tương ứng *WebContent*):
+
+```text
+LibMan/
+├── .github/workflows/render-diagrams.yml
+├── db/
+│   ├── scenario-test.sql
+│   └── schema.sql
+├── spec/
+│   ├── diagrams/
+│   │   ├── src/                    # Nguồn PlantUML (H3.1–H3.12 + _theme.puml)
+│   │   └── svg/                    # Ảnh SVG render từ PlantUML & wireframe UI
+│   ├── NGOAI-LE.md
+│   ├── SPEC.md
+│   └── TUAN-TU.md
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   ├── dao/                # DAO, LibraryCardDAO, LoanDetailDAO, MemberDAO, ReaderDAO, ReturnReceiptDAO
+│   │   │   └── model/              # 19 JavaBean thực thể và thống kê (*9.java)
+│   │   └── webapp/                 # Tương ứng WebContent trên Eclipse
+│   │       ├── assets/             # css/libman.css, js/libman.js
+│   │       ├── view/               # bandoc/ (4 JSP), thanhvien/ (4 JSP), thuthu/ (8 JSP)
+│   │       ├── WEB-INF/            # 7 *.jspf dùng chung + web.xml
+│   │       └── index.jsp
+│   └── test/java/                  # MySqlScenario.java, ReportExample.java
+├── mvnw / mvnw.cmd
+├── pom.xml
+├── README.md
+└── run.ps1
+```
+
+- **Biên dịch lại SVG từ mã nguồn PlantUML** (khi chỉnh sửa [`diagrams/src/*.puml`](diagrams/src/)):
+
+```powershell
+java -jar plantuml.jar -charset UTF-8 -tsvg -o spec/diagrams/svg spec/diagrams/src/H*.puml
+```

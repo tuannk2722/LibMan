@@ -1,0 +1,122 @@
+@startuml H3.9-activity-return
+!include _theme.puml
+hide empty description
+skinparam nodesep 35
+skinparam ranksep 45
+skinparam StateBackgroundColor #FFFFFF
+skinparam StateBorderColor #222222
+skinparam NoteBackgroundColor #FFFFFF
+skinparam NoteBorderColor #64748B
+
+[*] --> c_recv : Bắt đầu
+
+state "Xử lí tại gdChinh.jsp" as sChinh {
+  state "Nhận thông tin thủ thư\ntừ phiên đăng nhập" as c_recv
+  state "Hiển thị giao diện chính" as c_show
+  c_recv --> c_show
+}
+
+state "Xử lí tại gdTimBanDoc.jsp" as sTim {
+  state "Hiển thị ô số thẻ / mã bạn đọc" as tim_show
+  state "Nhận một loại mã tra cứu" as tim_in
+  tim_show --> tim_in : [quét thẻ hoặc nhập mã]
+}
+
+state "Xử lí tại gdDSDangMuon.jsp" as sDS {
+  state "Tìm hồ sơ bạn đọc" as ds_find
+  state "Lấy dòng mượn OPEN" as ds_open
+  state "Hiển thị bạn đọc và danh sách\nmã bản sao, tên, ngày mượn, hạn trả" as ds_show
+  ds_find --> ds_open : [có hồ sơ]
+  ds_open --> ds_show : [có dòng OPEN]
+  ds_show --> ds_show : [Tiếp tục nhưng chưa chọn dòng: báo lỗi]
+}
+
+state "ReaderDAO:\ngetBanDocTheoSoThe(soThe)\nhoặc getBanDocTheoMa(ma)" as dao_reader
+state "LoanDetailDAO:\ngetDSDangMuon(readerId)" as dao_loan
+state "Báo danh sách trống" as ds_empty
+
+state "Xử lí tại gdChiTietTra.jsp" as sChiTiet {
+  state "Nhận bạn đọc, thủ thư và các dòng đã chọn" as ct_recv
+  state "Hiển thị ngày trả hệ thống, tình trạng;\nnhập phạt hỏng và phạt chậm cho từng dòng" as ct_form
+  ct_recv --> ct_form
+}
+
+state "Xử lí tại doLapPhieuTam.jsp" as sLapTam {
+  state "Nhận dữ liệu; kiểm tra danh sách,\ntình trạng và hai khoản phạt >= 0" as tam_val
+  state "Tạo ReturnDetail9[] và ReturnReceipt9;\ntính phạt từng dòng và tổng phạt" as tam_build
+  state "Giữ phiếu tạm trong phiên; chưa ghi CSDL" as tam_hold
+  tam_val --> tam_build : [hợp lệ]
+  tam_build --> tam_hold
+}
+
+state "ReturnDetail9:\ntinhTienPhatDong()" as ent_rd
+state "ReturnReceipt9:\ntinhTongPhat()" as ent_rr
+
+state "Xử lí tại gdPhieuTra.jsp" as sPhieu {
+  state "Hiển thị phiếu tạm để đối chiếu;\nchưa có id chính thức, chưa cho in\n(Thu đủ tiền nếu tổng phạt > 0; = 0 thì bỏ qua thu.\nChưa thu đủ: giữ phiếu tạm, chưa xác nhận.)" as pt_draft
+  state "Thông báo nhận trả thành công;\nhiển thị id, tổng phạt và PAID / NO_FINE" as pt_saved
+  state "Hiển thị bản in đã nạp;\nmở hộp thoại in trên trình duyệt" as pt_print
+  pt_draft -[hidden]down-> pt_saved
+  pt_saved -[hidden]down-> pt_print
+}
+
+state "Xử lí tại doLuuPhieuTra.jsp" as sLuu {
+  state "Lấy phieuTam từ phiên;\nyêu cầu lưu lần nhận trả" as luu_call
+  state "Nhận phiếu đã lưu có id;\nđánh dấu phiếu tạm đã xử lí; trả kết quả" as luu_ok
+  luu_call --> luu_ok : [đã commit / cùng lượt đã lưu]
+}
+
+state "ReturnReceiptDAO:\nxacNhanTra(phieuTam)" as dao_save
+
+state "Xử lí tại doInPhieuTra.jsp" as sIn {
+  state "Nhận idPhieu; nạp đúng phiếu đã lưu" as in_load
+  state "Kiểm tra phiếu tồn tại, PAID / NO_FINE;\nchuẩn bị nội dung in từ dữ liệu đã lưu" as in_check
+  in_load --> in_check
+}
+
+state "ReturnReceiptDAO:\ngetPhieuTra(idPhieu)" as dao_get
+
+c_show --> tim_show : [chọn Nhận trả]
+tim_in --> ds_find : [bấm Tìm]
+
+ds_find -right-> dao_reader
+dao_reader -left-> ds_find
+ds_find -up-> tim_show : [không tìm thấy: báo lỗi, trả lại]
+
+ds_open -right-> dao_loan
+dao_loan -left-> ds_open
+ds_open --> ds_empty : [rỗng]
+ds_empty --> [*]
+
+ds_show -up-> tim_show : [Tìm bạn đọc khác]
+ds_show --> ct_recv : [chọn ít nhất một dòng; Tiếp tục]
+
+ct_form -up-> ds_show : [Quay lại]
+ct_form --> tam_val : [nhập dữ liệu; Lập phiếu tạm]
+
+tam_val -up-> ct_form : [sai dữ liệu: báo lỗi, giữ dữ liệu để sửa]
+tam_build -right-> ent_rd
+ent_rd -left-> tam_build
+tam_build -right-> ent_rr
+ent_rr -left-> tam_build
+
+tam_hold --> pt_draft : [đã lập phiếu tạm]
+
+pt_draft -up-> ct_form : [Quay lại trước khi lưu: sửa chi tiết]
+pt_draft -right-> luu_call : [đã thu đủ phạt nếu có; bấm Xác nhận nhận trả]
+
+luu_call -right-> dao_save
+dao_save -left-> luu_call
+luu_call -up-> ds_open : [dòng không còn hợp lệ: không lưu; tải lại danh sách và đối chiếu]
+luu_call -left-> pt_draft : [lỗi lưu: rollback; báo lỗi, giữ phiếu tạm]
+luu_ok --> pt_saved : [phieuDaLuu]
+
+pt_saved -left-> in_load : [In phiếu trả / In lại]
+in_load -left-> dao_get
+dao_get -right-> in_load
+in_check -right-> pt_saved : [không đủ điều kiện / lỗi nạp: báo lỗi, không in]
+in_check -right-> pt_print : [đủ điều kiện: trả nội dung in]
+
+pt_print -up-> pt_saved : [in lỗi: giữ phiếu; khắc phục máy in rồi In lại]
+pt_print --> [*] : [in thành công; giao phiếu;\nVề trang chủ -> gdChinh.jsp]\nKết thúc lượt nhận trả
+@enduml

@@ -4,6 +4,10 @@ Mỗi hàng dùng diễn giải của kịch bản phiên bản 3 trong báo cá
 
 ## Hình 3.6 — Đăng kí làm thẻ
 
+- **Mã nguồn PlantUML:** [`diagrams/src/H3.6-sequence-card.puml`](diagrams/src/H3.6-sequence-card.puml)
+
+![Hình 3.6 — Sơ đồ tuần tự Đăng kí làm thẻ](diagrams/svg/H3.6-sequence-card.svg)
+
 | Bước | Kịch bản trong báo cáo | Vị trí trong khung |
 |---:|---|---|
 | 1 | Tại trang gdChinh.jsp, bạn đọc chọn chức năng Đăng kí làm thẻ bạn đọc. | bandoc/gdChinh.jsp → gdDangKyThe.jsp |
@@ -31,6 +35,10 @@ Mỗi hàng dùng diễn giải của kịch bản phiên bản 3 trong báo cá
 | 23 | Trang gdChinh.jsp hiển thị lại giao diện chính của bạn đọc; lượt đăng kí làm thẻ kết thúc. | gdKetQua.jsp → bandoc/gdChinh.jsp |
 
 ## Hình 3.10 — Nhận trả tài liệu
+
+- **Mã nguồn PlantUML:** [`diagrams/src/H3.10-sequence-return.puml`](diagrams/src/H3.10-sequence-return.puml)
+
+![Hình 3.10 — Sơ đồ tuần tự Nhận trả tài liệu](diagrams/svg/H3.10-sequence-return.svg)
 
 | Bước | Kịch bản trong báo cáo | Vị trí trong khung |
 |---:|---|---|

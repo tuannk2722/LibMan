@@ -1,0 +1,175 @@
+@startuml H3.2-erd-schema
+!include _theme.puml
+hide circle
+skinparam nodesep 55
+skinparam ranksep 65
+skinparam linetype polyline
+skinparam EntityBackgroundColor #FAD2A2
+skinparam EntityHeaderBackgroundColor #F3A953
+skinparam EntityBorderColor #7A4B1E
+
+entity tblMember9 {
+  * id : integer(10) <<PK, U>>
+  --
+  * username : varchar(255) <<U>>
+  * passwordHash : varchar(255)
+  * fullName : varchar(255)
+  * birthDate : date
+  * address : varchar(255)
+  * email : varchar(255)
+  * phone : varchar(255)
+}
+
+entity tblReader9 {
+  * memberId : integer(10) <<PK, FK, U>>
+  --
+  * readerCode : varchar(255) <<U>>
+  * status : varchar(255)
+}
+
+entity tblEmployee9 {
+  * memberId : integer(10) <<PK, FK, U>>
+  --
+  * employeeCode : varchar(255) <<U>>
+  * position : varchar(255)
+}
+
+entity tblLibrarian9 {
+  * employeeId : integer(10) <<PK, FK, U>>
+}
+
+entity tblLibraryCard9 {
+  * id : integer(10) <<PK, U>>
+  --
+  * cardNumber : varchar(255) <<U>>
+  * cardType : varchar(255)
+  * issueDate : date
+  * expiryDate : date
+  * status : varchar(255)
+  * readerId : integer(10) <<FK>>
+}
+
+entity tblDocumentType9 {
+  * id : integer(10) <<PK, U>>
+  --
+  * typeName : varchar(255)
+  description : varchar(255) <<NULL>>
+}
+
+entity tblDocument9 {
+  * id : integer(10) <<PK, U>>
+  --
+  * documentCode : varchar(255) <<U>>
+  * title : varchar(255)
+  author : varchar(255) <<NULL>>
+  publisher : varchar(255) <<NULL>>
+  publicationYear : integer(10) <<NULL>>
+  standardNumber : varchar(255) <<NULL>>
+  issueNumber : varchar(255) <<NULL>>
+  * catalogStatus : varchar(255)
+  * documentTypeId : integer(10) <<FK>>
+}
+
+entity tblDocumentCopy9 {
+  * id : integer(10) <<PK, U>>
+  --
+  * copyCode : varchar(255) <<U>>
+  * shelfLocation : varchar(255)
+  * condition : varchar(255)
+  * circulationStatus : varchar(255)
+  * documentId : integer(10) <<FK>>
+  importDetailId : integer(10) <<FK, NULL>>
+}
+
+entity tblLoan9 {
+  * id : integer(10) <<PK, U>>
+  --
+  * borrowDate : date
+  * readerId : integer(10) <<FK>>
+  * librarianId : integer(10) <<FK>>
+}
+
+entity tblLoanDetail9 {
+  * id : integer(10) <<PK, U>>
+  --
+  * dueDate : date
+  * status : varchar(255)
+  * loanId : integer(10) <<FK, U(loanId,copyId)>>
+  * copyId : integer(10) <<FK, U(loanId,copyId)>>
+}
+
+entity tblReturnReceipt9 {
+  * id : integer(10) <<PK, U>>
+  --
+  * returnDate : date
+  * paymentStatus : varchar(255)
+  * readerId : integer(10) <<FK>>
+  * librarianId : integer(10) <<FK>>
+}
+
+entity tblReturnDetail9 {
+  * id : integer(10) <<PK, U>>
+  --
+  * conditionAtReturn : varchar(255)
+  * damageFine : decimal(19, 0)
+  * lateFine : decimal(19, 0)
+  * returnReceiptId : integer(10) <<FK>>
+  * loanDetailId : integer(10) <<FK, U>>
+}
+
+entity tblSupplier9 {
+  * id : integer(10) <<PK, U>>
+  --
+  * supplierCode : varchar(255) <<U>>
+  * name : varchar(255)
+  * address : varchar(255)
+  * phone : varchar(255)
+  * email : varchar(255)
+  * status : varchar(255)
+}
+
+entity tblImportReceipt9 {
+  * id : integer(10) <<PK, U>>
+  --
+  * importDate : date
+  note : varchar(255) <<NULL>>
+  * supplierId : integer(10) <<FK>>
+  * librarianId : integer(10) <<FK>>
+}
+
+entity tblImportDetail9 {
+  * id : integer(10) <<PK, U>>
+  --
+  * quantity : integer(10)
+  * importReceiptId : integer(10) <<FK, U(importReceiptId,documentId)>>
+  * documentId : integer(10) <<FK, U(importReceiptId,documentId)>>
+}
+
+' Subtype 1-to-0..1 links
+tblMember9 ||-right-o| tblReader9
+tblMember9 ||--o| tblEmployee9
+tblEmployee9 ||--o| tblLibrarian9
+
+' Reader & Card
+tblReader9 ||-right-o{ tblLibraryCard9
+
+' Loan & Return
+tblReader9 ||--o{ tblLoan9
+tblLibrarian9 ||-right-o{ tblLoan9
+tblLoan9 ||-right-|{ tblLoanDetail9
+tblDocumentCopy9 ||-left-o{ tblLoanDetail9
+
+tblReader9 ||--o{ tblReturnReceipt9
+tblLibrarian9 ||-right-o{ tblReturnReceipt9
+tblReturnReceipt9 ||-right-|{ tblReturnDetail9
+tblLoanDetail9 ||--o| tblReturnDetail9
+
+' Catalog & Import
+tblDocumentType9 ||--o{ tblDocument9
+tblDocument9 ||--o{ tblDocumentCopy9
+tblSupplier9 ||-right-o{ tblImportReceipt9
+tblLibrarian9 ||--o{ tblImportReceipt9
+tblImportReceipt9 ||-right-|{ tblImportDetail9
+tblImportDetail9 |o--o{ tblDocumentCopy9
+tblDocument9 ||--o{ tblImportDetail9
+@enduml
