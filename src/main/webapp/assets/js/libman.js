@@ -103,7 +103,7 @@
       let total = 0;
       rows.forEach(function (row) {
         const id = row.getAttribute("data-line-id");
-        const condInput = row.querySelector('input[name="inTinhTrang.' + id + '"]');
+        const condInput = row.querySelector('[name="inTinhTrang.' + id + '"]');
         const damageInput = row.querySelector('input[name="inPhatHong.' + id + '"]');
         const lateInput = row.querySelector('input[name="inPhatCham.' + id + '"]');
         const lineTotalEl = row.querySelector("[data-line-total]");
@@ -132,7 +132,7 @@
     }
 
     rows.forEach(function (row) {
-      row.querySelectorAll("input").forEach(function (inputEl) {
+      row.querySelectorAll("input, select").forEach(function (inputEl) {
         inputEl.addEventListener("input", updateDetailsSummary);
         inputEl.addEventListener("change", updateDetailsSummary);
       });

@@ -122,12 +122,6 @@ request.setAttribute("pageTitle", "Nhập thông tin trả");
   <form method="post" action="doLapPhieuTam.jsp">
     <input type="hidden" name="csrf" value="<%=csrf%>">
     <input type="hidden" name="selection" value="<%=h(selection)%>">
-    <datalist id="dsTinhTrang">
-      <option value="Bình thường">
-      <option value="Hỏng">
-      <option value="Rách">
-      <option value="Mất">
-    </datalist>
     <% if (hasOverdue) { %>
       <div class="table-toolbar">
         <span class="form-hint">Có tài liệu quá hạn so với ngày trả hệ thống (<%=date(returnDate)%>).</span>
@@ -176,15 +170,22 @@ request.setAttribute("pageTitle", "Nhập thông tin trả");
                   <% } else { %>
                     <span class="badge badge-success">Đúng hạn</span>
                   <% } %>
-                  <span data-circulation-badge class="badge <%=canCirculate ? "badge-success" : "badge-warning"%>">
-                    <%=circulationLabel(currentCond, curDamage)%>
-                  </span>
                 </div>
               </td>
               <td>
-                <input required maxlength="255" list="dsTinhTrang" name="inTinhTrang.<%=id%>"
-                    aria-label="Tình trạng <%=h(ld.getCopy().getCopyCode())%>"
-                    value='<%=input(request, "inTinhTrang." + id, condFallback)%>'>
+                <%
+                String selectedCond = ReturnReceiptDAO.chuanHoaTinhTrang(currentCond);
+                if (!List.of("Bình thường", "Hỏng", "Rách", "Mất").contains(selectedCond)) {
+                    selectedCond = "Bình thường";
+                }
+                %>
+                <select required name="inTinhTrang.<%=id%>"
+                    aria-label="Tình trạng <%=h(ld.getCopy().getCopyCode())%>">
+                  <option value="Bình thường" <%="Bình thường".equals(selectedCond) ? "selected" : ""%>>Bình thường</option>
+                  <option value="Hỏng" <%="Hỏng".equals(selectedCond) ? "selected" : ""%>>Hỏng</option>
+                  <option value="Rách" <%="Rách".equals(selectedCond) ? "selected" : ""%>>Rách</option>
+                  <option value="Mất" <%="Mất".equals(selectedCond) ? "selected" : ""%>>Mất</option>
+                </select>
               </td>
               <td>
                 <input class="input-money" required type="number" min="0" step="1" name="inPhatHong.<%=id%>"

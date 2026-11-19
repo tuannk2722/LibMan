@@ -41,7 +41,7 @@ request.setAttribute("pageTitle", "Kết quả đăng kí");
       </div>
     </div>
   </div>
-  <div class="form-actions" style="justify-content: center;">
+  <div class="form-actions" style="justify-content: end;">
     <a id="btnOkay" class="btn btn-primary" href="gdChinh.jsp">OK</a>
   </div>
 </section>
