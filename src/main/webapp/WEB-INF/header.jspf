@@ -27,6 +27,7 @@ if (_hdrMember instanceof Reader9) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/webp" href="<%=ctx(request)%>/assets/favicon.jpg">
 <title><%=h(_hdrFullTitle)%></title>
 <link rel="stylesheet" href="<%=ctx(request)%>/assets/css/libman.css">
 </head>

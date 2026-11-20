@@ -1,4 +1,4 @@
-# LibMan — Khung triển khai hai modul thư viện
+# LibMan
 
 ## Chạy nhanh trên Windows
 
@@ -74,9 +74,3 @@ java -cp 'target/classes:target/test-classes:target/LibMan/WEB-INF/lib/*' MySqlS
 ```
 
 Bộ dữ liệu mẫu kiểm tra hai luồng độc lập trong cùng một chương trình. DAO cấp thẻ theo ngày của máy chạy. Khi gọi trực tiếp DAO trả, test đặt ngày 22/09/2026 để tái hiện số liệu báo cáo. JSP luôn dùng ngày hệ thống. Dữ liệu phụ ngoài ví dụ, gồm mã đầu tài liệu, vị trí xếp giá và thông tin phụ của thủ thư, chỉ phục vụ fixture.
-
-## Mức xác minh khi bàn giao
-
-Đã biên dịch toàn bộ lớp Java, chạy ReportExample với assertions, kiểm tra Java nhúng của 12 JSP bằng bộ giả lập API tối thiểu, và đối chiếu trang đích, thành phần biểu mẫu với hình gốc. Đã chạy mô phỏng các nhánh chọn thiếu dòng, giữ dữ liệu khi nhập lỗi, tổng 40.000 đồng, chặn in phiếu tạm và gửi lại lượt đã gắn id. Đã kiểm tra khóa ngoại của fixture trên bản DDL chuyển cú pháp sang SQLite trong bộ nhớ. MySqlScenario là bài kiểm thử tích hợp tái chạy được. Chưa chạy WAR trên Tomcat, MySQL thật hoặc máy in trong môi trường bàn giao.
-
-Quy trình `run.ps1` đã được kiểm tra trên Windows với JDK 21, Tomcat 10.1.62 và MySQL 8.0.43. Các bước kiểm tra gồm build và triển khai WAR, đăng nhập hai vai trò, cấp và tra cứu thẻ, khởi động lại bằng WAR có sẵn, triển khai WAR mới và chạy `MySqlScenario` trên database thử nghiệm riêng.
